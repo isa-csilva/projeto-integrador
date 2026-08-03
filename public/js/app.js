@@ -1,17 +1,9 @@
-document.addEventListener('submit', function (event) {
-    const form = event.target;
+'use strict';
 
-    if (!form.matches('form')) {
-        return;
-    }
+document.addEventListener('DOMContentLoaded', function () {
+    const firstInvalidField = document.querySelector('[aria-invalid="true"]');
 
-    const deleteButton = event.submitter;
-
-    if (deleteButton && deleteButton.textContent.trim().toLowerCase() === 'excluir') {
-        const confirmed = window.confirm('Deseja realmente excluir este registro?');
-
-        if (!confirmed) {
-            event.preventDefault();
-        }
+    if (firstInvalidField) {
+        firstInvalidField.focus();
     }
 });

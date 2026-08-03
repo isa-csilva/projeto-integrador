@@ -6,17 +6,25 @@ class Controller
     {
         $viewFile = VIEW_PATH . '/' . str_replace('.', '/', $view) . '.php';
 
-        if (!file_exists($viewFile)) {
-            die('View nao encontrada: ' . $view);
+        if (!is_file($viewFile)) {
+            error_log('[Controller] View não encontrada: ' . $viewFile);
+            http_response_code(500);
+            $viewFile = VIEW_PATH . '/errors/500.php';
+            $data = array('title' => 'Erro interno');
+
+            if (!is_file($viewFile)) {
+                echo 'Não foi possível exibir esta página.';
+                return;
+            }
         }
 
-        extract($data);
+        extract($data, EXTR_SKIP);
         require VIEW_PATH . '/layouts/main.php';
     }
 
-    protected function redirect($path)
+    protected function redirect($path, $status = 302)
     {
-        header('Location: ' . url($path));
+        header('Location: ' . url($path), true, $status);
         exit;
     }
 }

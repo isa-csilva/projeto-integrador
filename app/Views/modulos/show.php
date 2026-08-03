@@ -1,9 +1,12 @@
 <section class="page-header compact">
-    <p class="eyebrow">Modulo</p>
+    <p class="eyebrow">Estrutura inicial</p>
     <h1><?= e($title) ?></h1>
-    <p><?= e($description) ?></p>
+    <p>A rota e a página inicial deste módulo fazem parte da Entrega Parcial 2.</p>
 </section>
 
 <section class="panel">
-    <p>Controller e rota inicial criados. O CRUD deste modulo sera detalhado conforme a evolucao das proximas entregas.</p>
+    <div class="alert alert-info">
+        As operações de cadastro e gerenciamento deste módulo serão desenvolvidas em uma etapa futura.
+    </div>
+    <a class="button secondary" href="<?= e(url('/dashboard')) ?>">Voltar ao dashboard</a>
 </section>

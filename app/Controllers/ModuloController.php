@@ -9,22 +9,22 @@ class ModuloController extends Controller
 
     public function turmas()
     {
-        $this->module('Turmas', 'Organizacao de alunos por ano, serie ou periodo.');
+        $this->module('Turmas', 'Organização de alunos por ano, série ou período.');
     }
 
     public function disciplinas()
     {
-        $this->module('Disciplinas', 'Cadastro das materias oferecidas pela escola.');
+        $this->module('Disciplinas', 'Cadastro das matérias oferecidas pela escola.');
     }
 
     public function matriculas()
     {
-        $this->module('Matriculas', 'Vinculo entre alunos, turmas e periodo letivo.');
+        $this->module('Matrículas', 'Vínculo entre alunos, turmas e período letivo.');
     }
 
     public function usuarios()
     {
-        $this->module('Usuarios', 'Controle de acesso e perfis do sistema.');
+        $this->module('Usuários', 'Controle de acesso e perfis do sistema.');
     }
 
     private function module($title, $description)

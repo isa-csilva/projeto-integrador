@@ -1,27 +1,41 @@
+<?php
+$navigation = array(
+    array('path' => '/', 'label' => 'Início'),
+    array('path' => '/dashboard', 'label' => 'Dashboard'),
+    array('path' => '/alunos', 'label' => 'Alunos'),
+    array('path' => '/professores', 'label' => 'Professores'),
+    array('path' => '/turmas', 'label' => 'Turmas'),
+    array('path' => '/disciplinas', 'label' => 'Disciplinas'),
+    array('path' => '/matriculas', 'label' => 'Matrículas'),
+    array('path' => '/login', 'label' => 'Login')
+);
+?>
 <!doctype html>
 <html lang="pt-BR">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= e($title ?? 'Sistema Escolar') ?> | Sistema Escolar</title>
+    <title><?php if (!empty($title)): ?><?= e($title) ?> | <?php endif; ?>Sistema Escolar</title>
     <link rel="stylesheet" href="<?= e(url('/css/style.css')) ?>">
 </head>
 <body>
+    <a class="skip-link" href="#conteudo-principal">Ir para o conteúdo principal</a>
+
     <header class="topbar">
         <a class="brand" href="<?= e(url('/')) ?>">Sistema Escolar</a>
         <nav class="nav" aria-label="Menu principal">
-            <a class="<?= e(isActive('/')) ?>" href="<?= e(url('/')) ?>">Inicio</a>
-            <a class="<?= e(isActive('/dashboard')) ?>" href="<?= e(url('/dashboard')) ?>">Dashboard</a>
-            <a class="<?= e(isActive('/alunos')) ?>" href="<?= e(url('/alunos')) ?>">Alunos</a>
-            <a class="<?= e(isActive('/professores')) ?>" href="<?= e(url('/professores')) ?>">Professores</a>
-            <a class="<?= e(isActive('/turmas')) ?>" href="<?= e(url('/turmas')) ?>">Turmas</a>
-            <a class="<?= e(isActive('/disciplinas')) ?>" href="<?= e(url('/disciplinas')) ?>">Disciplinas</a>
-            <a class="<?= e(isActive('/matriculas')) ?>" href="<?= e(url('/matriculas')) ?>">Matriculas</a>
-            <a class="<?= e(isActive('/login')) ?>" href="<?= e(url('/login')) ?>">Login</a>
+            <?php foreach ($navigation as $item): ?>
+                <?php $active = isActive($item['path']) === 'active'; ?>
+                <a
+                    class="<?= $active ? 'active' : '' ?>"
+                    href="<?= e(url($item['path'])) ?>"
+                    <?php if ($active): ?>aria-current="page"<?php endif; ?>
+                ><?= e($item['label']) ?></a>
+            <?php endforeach; ?>
         </nav>
     </header>
 
-    <main class="page">
+    <main id="conteudo-principal" class="page" tabindex="-1">
         <?php require $viewFile; ?>
     </main>
 

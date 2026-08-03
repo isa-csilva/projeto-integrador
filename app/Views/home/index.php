@@ -1,10 +1,10 @@
 <section class="page-header">
-    <p class="eyebrow">Projeto Integrador</p>
-    <h1>Base MVC do Sistema de Gestao Escolar</h1>
-    <p>Aplicacao em PHP organizada com controllers, views, rotas amigaveis e estrutura inicial para evoluir o CRUD escolar.</p>
+    <p class="eyebrow">Entregas Parciais 2 e 3</p>
+    <h1>Sistema de Gestão Escolar</h1>
+    <p>Aplicação acadêmica em PHP com arquitetura MVC, rotas amigáveis e cadastro de alunos persistido em MySQL.</p>
 </section>
 
-<section class="summary-grid" aria-label="Resumo da implementacao">
+<section class="summary-grid" aria-label="Resumo das entregas">
     <?php foreach ($cards as $card): ?>
         <article class="summary-card">
             <span><?= e($card['label']) ?></span>
@@ -13,20 +13,24 @@
     <?php endforeach; ?>
 </section>
 
-<section class="panel">
+<section class="panel" aria-labelledby="rotas-heading">
     <div class="panel-header">
-        <h2>Rotas iniciais</h2>
+        <div>
+            <h2 id="rotas-heading">Rotas disponíveis</h2>
+            <p class="section-description">Os links respeitam automaticamente a subpasta de instalação do projeto.</p>
+        </div>
         <a class="button" href="<?= e(url('/alunos')) ?>">Abrir alunos</a>
     </div>
     <div class="route-list">
-        <code>/</code>
-        <code>/dashboard</code>
-        <code>/login</code>
-        <code>/alunos</code>
-        <code>/alunos/criar</code>
-        <code>/professores</code>
-        <code>/turmas</code>
-        <code>/disciplinas</code>
-        <code>/matriculas</code>
+        <a href="<?= e(url('/')) ?>"><code>/</code></a>
+        <a href="<?= e(url('/dashboard')) ?>"><code>/dashboard</code></a>
+        <a href="<?= e(url('/login')) ?>"><code>/login</code></a>
+        <a href="<?= e(url('/alunos')) ?>"><code>/alunos</code></a>
+        <a href="<?= e(url('/alunos/criar')) ?>"><code>/alunos/criar</code></a>
+        <a href="<?= e(url('/professores')) ?>"><code>/professores</code></a>
+        <a href="<?= e(url('/turmas')) ?>"><code>/turmas</code></a>
+        <a href="<?= e(url('/disciplinas')) ?>"><code>/disciplinas</code></a>
+        <a href="<?= e(url('/matriculas')) ?>"><code>/matriculas</code></a>
+        <a href="<?= e(url('/usuarios')) ?>"><code>/usuarios</code></a>
     </div>
 </section>

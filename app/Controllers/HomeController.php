@@ -5,13 +5,13 @@ class HomeController extends Controller
     public function index()
     {
         $cards = array(
-            array('label' => 'Alunos', 'value' => 'Modulo inicial'),
-            array('label' => 'MVC', 'value' => 'Estrutura criada'),
-            array('label' => 'Rotas', 'value' => 'Funcionando')
+            array('label' => 'Entrega Parcial 2', 'value' => 'Estrutura MVC e rotas'),
+            array('label' => 'Entrega Parcial 3', 'value' => 'Cadastro e listagem de alunos'),
+            array('label' => 'Próxima etapa', 'value' => 'Edição e exclusão')
         );
 
         $this->view('home.index', array(
-            'title' => 'Inicio',
+            'title' => 'Início',
             'cards' => $cards
         ));
     }

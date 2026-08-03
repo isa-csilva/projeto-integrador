@@ -2,24 +2,57 @@
 
 class Aluno
 {
-    public function listarTodos()
+    private $connection;
+
+    public function __construct(?PDO $connection = null)
     {
-        return array(
-            array('id' => 1, 'nome' => 'Ana Silva', 'email' => 'ana@escola.com', 'matricula' => '2026001', 'turma' => '1A'),
-            array('id' => 2, 'nome' => 'Bruno Santos', 'email' => 'bruno@escola.com', 'matricula' => '2026002', 'turma' => '2B')
-        );
+        $this->connection = $connection ?: Database::getConnection();
     }
 
-    public function buscarPorId($id)
+    public function listarTodos()
     {
-        $alunos = $this->listarTodos();
+        $statement = $this->connection->prepare(
+            'SELECT id, nome, email, matricula, turma, criado_em
+             FROM alunos
+             ORDER BY nome ASC, id ASC'
+        );
+        $statement->execute();
 
-        foreach ($alunos as $aluno) {
-            if ($aluno['id'] == $id) {
-                return $aluno;
-            }
-        }
+        return $statement->fetchAll();
+    }
 
-        return null;
+    public function cadastrar($dados)
+    {
+        $statement = $this->connection->prepare(
+            'INSERT INTO alunos (nome, email, matricula, turma)
+             VALUES (:nome, :email, :matricula, :turma)'
+        );
+
+        return $statement->execute(array(
+            'nome' => $dados['nome'],
+            'email' => $dados['email'],
+            'matricula' => $dados['matricula'],
+            'turma' => $dados['turma']
+        ));
+    }
+
+    public function emailExiste($email)
+    {
+        $statement = $this->connection->prepare(
+            'SELECT 1 FROM alunos WHERE email = :email LIMIT 1'
+        );
+        $statement->execute(array('email' => $email));
+
+        return $statement->fetchColumn() !== false;
+    }
+
+    public function matriculaExiste($matricula)
+    {
+        $statement = $this->connection->prepare(
+            'SELECT 1 FROM alunos WHERE matricula = :matricula LIMIT 1'
+        );
+        $statement->execute(array('matricula' => $matricula));
+
+        return $statement->fetchColumn() !== false;
     }
 }

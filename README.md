@@ -1,357 +1,290 @@
-# Projeto Integrador - Sistema de Gestao Escolar
+# Sistema de Gestão Escolar
 
-## 1. Descricao do Projeto
+Aplicação web acadêmica para organizar informações escolares em uma interface simples e responsiva. O projeto é desenvolvido na disciplina **Projeto e Implementação de Sistemas para Web II** e usa PHP sem framework, arquitetura MVC e MySQL.
 
-O projeto consiste no desenvolvimento de um sistema web de gestao escolar, criado para auxiliar uma instituicao de ensino no controle de informacoes academicas e administrativas.
+Repositório oficial: [github.com/isa-csilva/projeto-integrador](https://github.com/isa-csilva/projeto-integrador)
 
-A aplicacao permitira o cadastro e gerenciamento de alunos, professores, turmas, disciplinas, matriculas, usuarios do sistema e arquivos relacionados aos registros escolares. O sistema sera desenvolvido em PHP com arquitetura MVC, banco de dados relacional e interface web funcional.
+Branch principal do projeto: `master`
 
-O objetivo do sistema e centralizar dados importantes da escola, reduzir controles manuais e facilitar o acesso as informacoes por diferentes perfis de usuario, como administradores, secretaria e professores.
+## Objetivo
 
-## 2. Tema
+Centralizar dados acadêmicos e administrativos de pequenas e médias instituições de ensino, reduzindo controles manuais e oferecendo uma base organizada para cadastros, consultas e futuras rotinas escolares.
 
-**Sistema de Gestao Escolar**
+Nesta etapa, o foco funcional é o cadastro e a listagem de alunos. Administradores, profissionais da secretaria e professores são os principais perfis previstos para a evolução do sistema.
 
-O sistema sera voltado para o gerenciamento basico de uma escola, contemplando rotinas como cadastro de alunos, professores, turmas, disciplinas, matriculas, controle de acesso e envio de arquivos.
+## Situação das entregas parciais
 
-## 3. Objetivo Geral
+| Entrega | Situação | Escopo concluído |
+| --- | --- | --- |
+| Parcial 2 — Estrutura MVC e Rotas | Concluída | Estrutura MVC, controllers e views iniciais, front controller, roteamento por método HTTP, páginas 404 e 405 e repositório remoto atualizado. |
+| Parcial 3 — CRUD Inicial | Concluída | Conexão MySQL com PDO, schema versionado e operações Create e Read de alunos, com validação, duplicidades, PRG e mensagens de erro seguras. |
 
-Desenvolver uma aplicacao web em PHP, utilizando arquitetura MVC e banco de dados relacional, para gerenciar informacoes escolares de forma organizada, segura e acessivel.
+### Entrega Parcial 2 — Estrutura MVC e Rotas
 
-## 4. Objetivos Especificos
+- Controllers recebem as requisições e coordenam o fluxo.
+- O model concentra o acesso aos dados de alunos.
+- As views recebem dados prontos e não executam consultas SQL.
+- `public/index.php` é o único front controller da aplicação.
+- `core/Router.php` diferencia caminho e método HTTP.
+- Rotas inexistentes exibem uma página 404.
+- Métodos incompatíveis com uma rota exibem uma página 405.
+- Links e redirecionamentos consideram a instalação dentro de uma subpasta do `htdocs`.
+- Saídas dinâmicas são escapadas antes de serem exibidas nas views.
 
-- Implementar uma estrutura MVC separando models, views e controllers.
-- Criar um sistema de rotas para organizar o acesso as paginas.
-- Utilizar banco de dados relacional com conexao via PDO.
-- Desenvolver CRUD completo para os principais cadastros do sistema.
-- Implementar login, logout e controle de sessoes.
-- Controlar o acesso as funcionalidades conforme o perfil do usuario.
-- Validar os formularios antes de cadastrar ou atualizar dados.
-- Permitir upload de arquivos, como foto do aluno ou documentos escolares.
-- Tratar erros comuns, como paginas inexistentes, acesso negado e falhas de validacao.
-- Preparar a aplicacao para deploy em ambiente web.
+### Entrega Parcial 3 — CRUD Inicial
 
-## 5. Publico-alvo
+- A conexão PDO é centralizada e reutilizada durante a requisição.
+- O banco e a tabela `alunos` são criados por um script SQL idempotente.
+- O cadastro persiste alunos no MySQL com prepared statements.
+- A listagem consulta os alunos diretamente no MySQL.
+- Nome, e-mail, matrícula e turma são validados.
+- E-mail e matrícula duplicados são tratados com mensagens próximas aos campos.
+- Os valores informados são preservados quando há erro de validação.
+- Após um cadastro válido, o fluxo Post/Redirect/Get redireciona para a listagem e exibe uma mensagem flash.
+- Falhas internas exibem uma resposta genérica; detalhes técnicos são enviados ao log do PHP.
 
-O sistema sera destinado a pequenas e medias instituicoes de ensino que precisam organizar seus dados escolares em uma aplicacao simples e funcional.
+> Neste projeto, “CRUD inicial” significa **Create e Read**, que são o escopo da Parcial 3. Update e Delete permanecem para a Parcial 4.
 
-Os principais usuarios previstos sao:
+## Tecnologias
 
-- **Administrador:** responsavel por gerenciar usuarios, permissoes e cadastros principais.
-- **Secretaria:** responsavel por cadastrar alunos, professores, turmas, disciplinas e matriculas.
-- **Professor:** responsavel por consultar turmas e, futuramente, registrar notas e frequencia.
-- **Aluno ou responsavel:** perfil comum para consulta de informacoes academicas, quando implementado.
+- PHP 7.4 ou superior, orientado a objetos;
+- arquitetura MVC sem framework e sem dependências do Composer;
+- MySQL;
+- PDO com a extensão `pdo_mysql`;
+- Apache e XAMPP para o ambiente local;
+- HTML5, CSS3 e JavaScript;
+- Git e GitHub.
 
-## 6. Tecnologias Obrigatorias
-
-As tecnologias escolhidas para o desenvolvimento sao:
-
-- **Linguagem:** PHP orientado a objetos.
-- **Arquitetura:** MVC.
-- **Banco de dados:** MySQL.
-- **Conexao com banco:** PDO.
-- **Ambiente local:** XAMPP.
-- **Controle de versao:** Git.
-- **Repositorio remoto:** GitHub.
-- **Frontend:** HTML, CSS e JavaScript.
-
-## 7. Estrutura MVC Prevista
-
-A estrutura inicial do projeto sera organizada da seguinte forma:
+## Estrutura MVC
 
 ```text
-meu-projeto-web/
+projeto-integrador/
 ├── app/
 │   ├── Controllers/
+│   │   ├── AlunoController.php
+│   │   ├── AuthController.php
+│   │   ├── DashboardController.php
+│   │   ├── ErrorController.php
+│   │   ├── HomeController.php
+│   │   └── ModuloController.php
 │   ├── Models/
+│   │   └── Aluno.php
 │   └── Views/
+│       ├── alunos/
+│       ├── auth/
+│       ├── dashboard/
+│       ├── errors/
+│       ├── home/
+│       ├── layouts/
+│       └── modulos/
 ├── config/
 │   └── database.php
 ├── core/
 │   ├── Controller.php
 │   ├── Database.php
-│   └── Router.php
+│   ├── Router.php
+│   └── helpers.php
+├── database/
+│   └── schema.sql
 ├── public/
 │   ├── css/
 │   ├── js/
-│   ├── uploads/
+│   ├── .htaccess
 │   └── index.php
+├── .gitignore
 └── README.md
 ```
 
-O arquivo `public/index.php` sera o ponto de entrada da aplicacao. Ele recebera as requisicoes, acionara o sistema de rotas e direcionara cada rota para o controller correto.
+O fluxo principal é:
 
-## 8. Funcionalidades Previstas
+1. O Apache encaminha a requisição para `public/index.php` por meio de `public/.htaccess`.
+2. O front controller registra as rotas e solicita o despacho ao `Router`.
+3. O controller correspondente valida a entrada e coordena model e view.
+4. O model `Aluno` usa a conexão fornecida por `Database` para consultar ou persistir dados.
+5. A view renderiza somente os dados recebidos do controller.
 
-### 8.1 Autenticacao e sessoes
+## Funcionalidades concluídas
 
-- Tela de login.
-- Logout.
-- Controle de sessao do usuario autenticado.
-- Bloqueio de rotas privadas para usuarios nao autenticados.
-- Senhas armazenadas com hash.
+- Página inicial e dashboard.
+- Tela e sessão demonstrativas de login e logout.
+- Páginas iniciais dos módulos de professores, turmas, disciplinas, matrículas e usuários.
+- Cadastro persistente de alunos.
+- Listagem persistente de alunos, inclusive com estado vazio amigável.
+- Validação de campos obrigatórios e formato de e-mail.
+- Detecção de e-mail e matrícula duplicados.
+- Mensagens flash após cadastro.
+- Tratamento de erros 404, 405 e 500.
+- Interface responsiva em português brasileiro.
 
-### 8.2 Controle de acesso por perfil
+A autenticação atual é demonstrativa: ela cria uma sessão após validar o preenchimento do formulário, mas ainda não consulta usuários nem senhas no banco.
 
-- Perfil administrador com acesso completo.
-- Perfil secretaria com acesso aos cadastros escolares.
-- Perfil professor com acesso as suas turmas e registros academicos.
-- Perfil comum para consulta limitada de informacoes.
+## Funcionalidades futuras
 
-### 8.3 Gestao de alunos
+- Autenticação persistente com senhas armazenadas por hash.
+- Perfis de acesso e autorização de rotas.
+- Visualização detalhada, edição e exclusão de alunos.
+- Upload de foto ou documentos do aluno.
+- CRUD de professores, turmas, disciplinas, matrículas e usuários.
+- Vínculos entre professores, disciplinas, alunos e turmas.
+- Notas, frequência, boletim e relatórios.
+- DER/MER, documentação final e publicação em ambiente de produção.
 
-- Cadastro de alunos.
-- Listagem de alunos.
-- Visualizacao de dados do aluno.
-- Edicao de dados do aluno.
-- Exclusao de aluno.
-- Upload de foto ou documento do aluno.
-- Validacao de campos obrigatorios, e-mail, data de nascimento e dados duplicados.
+As rotas de editar, atualizar e excluir alunos não são apresentadas nem registradas como funcionalidades concluídas nesta entrega.
 
-### 8.4 Gestao de professores
+## Rotas disponíveis
 
-- Cadastro de professores.
-- Listagem de professores.
-- Edicao de professores.
-- Exclusao de professores.
-- Vinculo entre professor e disciplina.
+| Método | Caminho | Finalidade |
+| --- | --- | --- |
+| `GET` | `/` | Página inicial. |
+| `GET` | `/dashboard` | Painel principal. |
+| `GET` | `/login` | Formulário de login demonstrativo. |
+| `POST` | `/login` | Validação do formulário e criação da sessão demonstrativa. |
+| `GET` | `/logout` | Encerramento da sessão e retorno ao login. |
+| `GET` | `/alunos` | Listagem dos alunos consultados no MySQL. |
+| `GET` | `/alunos/criar` | Formulário de cadastro de aluno. |
+| `POST` | `/alunos/salvar` | Validação e persistência de um novo aluno. |
+| `GET` | `/professores` | Página inicial do módulo de professores. |
+| `GET` | `/turmas` | Página inicial do módulo de turmas. |
+| `GET` | `/disciplinas` | Página inicial do módulo de disciplinas. |
+| `GET` | `/matriculas` | Página inicial do módulo de matrículas. |
+| `GET` | `/usuarios` | Página inicial do módulo de usuários. |
 
-### 8.5 Gestao de turmas
+Ao acessar um caminho não registrado, a aplicação responde com 404. Ao usar um método HTTP não aceito por uma rota existente, responde com 405. Erros inesperados são tratados por uma página 500 genérica.
 
-- Cadastro de turmas.
-- Listagem de turmas.
-- Edicao de turmas.
-- Exclusao de turmas.
-- Vinculo de alunos matriculados.
+## Requisitos para execução
 
-### 8.6 Gestao de disciplinas
+- XAMPP com Apache, PHP 7.4 ou superior e MySQL/MariaDB;
+- extensões PHP `PDO` e `pdo_mysql` habilitadas;
+- módulo `mod_rewrite` do Apache habilitado;
+- permissão `AllowOverride` para que `public/.htaccess` seja aplicado;
+- navegador web atualizado;
+- Git, caso o projeto seja obtido por clone.
 
-- Cadastro de disciplinas.
-- Listagem de disciplinas.
-- Edicao de disciplinas.
-- Exclusao de disciplinas.
+O projeto não requer Laravel, Symfony, Composer ou instalação de pacotes.
 
-### 8.7 Gestao de matriculas
+## Instalação com XAMPP
 
-- Cadastro de matricula de aluno em uma turma.
-- Consulta de matriculas ativas.
-- Edicao de dados da matricula.
-- Cancelamento ou exclusao de matricula.
+1. Coloque o projeto dentro do diretório `htdocs` do XAMPP. No Windows, o caminho usual é:
 
-### 8.8 Notas e frequencia
+   ```text
+   C:\xampp\htdocs\projeto-integrador
+   ```
 
-- Lancamento de notas por aluno e disciplina.
-- Registro de frequencia.
-- Consulta de boletim.
-- Relatorios simples para acompanhamento academico.
+   Também é possível clonar diretamente:
 
-### 8.9 Upload de arquivos
+   ```powershell
+   Set-Location C:\xampp\htdocs
+   git clone https://github.com/isa-csilva/projeto-integrador.git
+   Set-Location projeto-integrador
+   git switch master
+   ```
 
-- Upload de foto do aluno.
-- Upload de documentos escolares.
-- Validacao de tipo e tamanho de arquivo.
-- Armazenamento do caminho do arquivo no banco de dados.
+2. Abra o painel do XAMPP e inicie **Apache** e **MySQL**.
+3. Importe `database/schema.sql` conforme a seção seguinte.
+4. Mantenha os valores padrão do banco ou configure as variáveis de ambiente necessárias.
+5. Acesse a URL local da aplicação.
 
-### 8.10 Tratamento de erros
+Se as rotas internas retornarem 404 do próprio Apache, confirme se `mod_rewrite` está habilitado e se o Apache permite a leitura do `.htaccess`. Depois de alterar a configuração do Apache, reinicie o serviço.
 
-- Pagina de erro 404 para rota inexistente.
-- Pagina de erro 403 para acesso negado.
-- Mensagens de erro para formularios invalidos.
-- Tratamento de excecoes em operacoes com banco de dados.
+## Criação e importação do banco
 
-## 9. CRUD Principal
+O arquivo `database/schema.sql`:
 
-O CRUD principal da aplicacao sera o cadastro de **alunos**, pois essa entidade representa o centro do sistema escolar.
+- cria o banco `sistema_escolar`, caso ele ainda não exista;
+- usa `utf8mb4`;
+- cria a tabela `alunos`, caso ela ainda não exista;
+- não executa `DROP DATABASE` nem `DROP TABLE`.
 
-Operacoes previstas:
+Por isso, o script pode ser importado novamente sem apagar tabelas ou registros existentes.
 
-- **Create:** cadastrar novo aluno.
-- **Read:** listar e visualizar alunos cadastrados.
-- **Update:** editar informacoes do aluno.
-- **Delete:** excluir aluno, respeitando regras de vinculo com matriculas.
+### Importação pelo phpMyAdmin
 
-Outros CRUDs tambem serao implementados conforme a evolucao do projeto, como professores, turmas, disciplinas, matriculas e usuarios.
+1. Com o MySQL iniciado, acesse [http://localhost/phpmyadmin/](http://localhost/phpmyadmin/).
+2. Abra a aba **Importar**.
+3. Selecione o arquivo `database/schema.sql` deste projeto.
+4. Mantenha o formato SQL e confirme a importação.
+5. Verifique se o banco `sistema_escolar` e a tabela `alunos` foram criados.
 
-## 10. Entidades Previstas para o Banco de Dados
+### Importação pela linha de comando
 
-Nesta etapa inicial, as principais entidades previstas sao:
+No Prompt de Comando do Windows, a partir da raiz do projeto:
 
-- **usuarios:** usuarios que acessam o sistema.
-- **perfis:** tipos de acesso dos usuarios.
-- **alunos:** dados pessoais e escolares dos alunos.
-- **professores:** dados dos professores.
-- **turmas:** agrupamento de alunos por periodo, ano ou serie.
-- **disciplinas:** materias oferecidas pela escola.
-- **matriculas:** vinculo entre aluno e turma.
-- **notas:** registros de notas por aluno e disciplina.
-- **frequencias:** registros de presenca e ausencia.
-- **arquivos:** documentos ou imagens enviados ao sistema.
+```bat
+C:\xampp\mysql\bin\mysql.exe -u root < database\schema.sql
+```
 
-O DER/MER sera desenvolvido em uma etapa posterior da entrega parcial.
+Se o usuário do MySQL possuir senha, use a opção `-p` e informe-a somente quando o cliente solicitar.
 
-## 11. Rotas Previstas
+## Configuração do banco de dados
 
-Algumas rotas planejadas para o sistema:
+`config/database.php` lê as seguintes variáveis de ambiente e fornece padrões adequados a uma instalação local comum do XAMPP:
+
+| Variável | Padrão local | Finalidade |
+| --- | --- | --- |
+| `DB_HOST` | `127.0.0.1` | Endereço do servidor MySQL. |
+| `DB_PORT` | `3306` | Porta do servidor MySQL. |
+| `DB_NAME` | `sistema_escolar` | Nome do banco da aplicação. |
+| `DB_USER` | `root` | Usuário local do MySQL. |
+| `DB_PASS` | vazio | Senha local do MySQL. |
+
+Representação dos valores padrão:
 
 ```text
-/login
-/logout
-/dashboard
-/alunos
-/alunos/criar
-/alunos/editar/{id}
-/alunos/excluir/{id}
-/professores
-/turmas
-/disciplinas
-/matriculas
-/usuarios
-/perfil
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_NAME=sistema_escolar
+DB_USER=root
+DB_PASS=
 ```
 
-As rotas privadas deverao verificar se existe usuario autenticado na sessao e se o perfil possui permissao para acessar a funcionalidade.
+Os padrões permitem executar o projeto sem armazenar uma senha privada no repositório. Em outro ambiente, defina as variáveis no sistema ou na configuração do Apache e reinicie o servidor. Os arquivos `.env` locais são ignorados pelo Git, mas o projeto não depende de um carregador de `.env`; criar esse arquivo isoladamente não altera o ambiente do PHP.
 
-## 12. Validacoes Previstas
+A conexão utiliza `utf8mb4`, exceções do PDO, retorno associativo e prepared statements reais:
 
-Os formularios deverao validar:
+- `PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION`;
+- `PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC`;
+- `PDO::ATTR_EMULATE_PREPARES => false`.
 
-- Campos obrigatorios.
-- Formato de e-mail.
-- Datas validas.
-- Tamanho minimo e maximo de textos.
-- Senhas com tamanho minimo.
-- Confirmacao de senha.
-- Dados duplicados, como e-mail ou matricula.
-- Tipo e tamanho de arquivos enviados.
+Não versione senhas reais, dumps com dados pessoais, arquivos enviados por usuários ou detalhes de produção.
 
-## 13. Deploy da Aplicacao
+## URL local de acesso
 
-O deploy sera planejado para uma etapa posterior do projeto. A aplicacao devera ser publicada em um ambiente que suporte PHP e MySQL.
+Com o projeto na pasta indicada, acesse:
 
-Possibilidades de deploy:
+[http://localhost/projeto-integrador/public/](http://localhost/projeto-integrador/public/)
 
-- Hospedagem compartilhada com suporte a PHP e MySQL.
-- Servidor configurado com Apache, PHP e MySQL.
-- Ambiente Docker publicado em servidor ou plataforma de nuvem.
+Se a pasta dentro de `htdocs` tiver outro nome, substitua `projeto-integrador` pelo nome usado. Por exemplo, uma pasta `escola` será acessada por `http://localhost/escola/public/`.
 
-## 14. Repositorio GitHub
+## Como demonstrar Create e Read
 
-O projeto devera ser versionado com Git e publicado no GitHub.
+Antes da demonstração, confirme que Apache e MySQL estão ativos e que `database/schema.sql` foi importado.
 
-Etapas previstas:
+1. Acesse `/alunos` e confira a listagem ou a mensagem de que ainda não há alunos.
+2. Abra `/alunos/criar`.
+3. Preencha nome, e-mail, matrícula e turma com valores inéditos.
+4. Envie o formulário.
+5. Confirme o redirecionamento para `/alunos`, a mensagem de sucesso e o novo registro na tabela.
+6. Atualize a página e confirme que o aluno permanece listado, demonstrando a persistência no MySQL.
+7. Tente cadastrar outro aluno com o mesmo e-mail e uma matrícula diferente; confira a mensagem de duplicidade do e-mail.
+8. Tente novamente com um e-mail diferente e a mesma matrícula; confira a mensagem de duplicidade da matrícula.
+9. Envie um e-mail inválido ou deixe um campo obrigatório vazio; confira as mensagens de validação e a preservação dos demais valores preenchidos.
 
-```bash
-git init
-git add .
-git commit -m "Planejamento inicial do sistema de gestao escolar"
-git branch -M main
-git remote add origin URL_DO_REPOSITORIO
-git push -u origin main
-```
+O campo de upload e as ações de editar e excluir não fazem parte desta demonstração, pois pertencem a etapas futuras.
 
-Observacao: o Git local ja foi inicializado, mas a pasta ainda precisa ser vinculada a um repositorio remoto do GitHub.
+## Segurança e tratamento de erros
 
-## 15. Itens que ficarao para a proxima etapa
+- Entradas do formulário são normalizadas e validadas no controller.
+- Consultas usam `prepare()` e `execute()`; os dados do formulário não são concatenados ao SQL.
+- As views usam escape de saída para reduzir o risco de XSS.
+- O model não produz HTML e as views não acessam o banco.
+- Exceções de banco não expõem host, usuário, senha, DSN ou mensagens internas na interface.
+- Detalhes técnicos podem ser registrados com `error_log()` para diagnóstico local.
+- Arquivos locais, logs, uploads e credenciais são excluídos do versionamento pelo `.gitignore`.
 
-Por enquanto, nao foram detalhados:
+## Repositório e controle de versão
 
-- Documento PDF final.
-- DER ou MER.
-- Prototipos das telas.
+- Repositório: [https://github.com/isa-csilva/projeto-integrador](https://github.com/isa-csilva/projeto-integrador)
+- Remoto padrão: `origin`
+- Branch atual do projeto: `master`
 
-Esses itens serao preparados depois, com base no planejamento descrito acima.
-
-## 16. Entrega Parcial 2 - Estrutura MVC e Rotas
-
-Objetivo da etapa: implementar a base arquitetural da aplicacao.
-
-### 16.1 Estrutura MVC criada
-
-A estrutura MVC inicial foi implementada com separacao entre controllers, views e arquivos centrais da aplicacao.
-
-A implementacao foi mantida de forma simples, sem framework e sem Composer, usando `require_once` para carregar os arquivos principais. Essa escolha facilita a apresentacao academica e a compreensao da arquitetura MVC por iniciantes.
-
-```text
-app/
-├── Controllers/
-│   ├── AlunoController.php
-│   ├── AuthController.php
-│   ├── DashboardController.php
-│   ├── ErrorController.php
-│   ├── HomeController.php
-│   └── ModuloController.php
-├── Models/
-│   └── Aluno.php
-└── Views/
-    ├── alunos/
-    ├── auth/
-    ├── dashboard/
-    ├── errors/
-    ├── home/
-    ├── layouts/
-    └── modulos/
-core/
-├── Controller.php
-├── Router.php
-└── helpers.php
-public/
-├── css/
-├── js/
-├── .htaccess
-└── index.php
-```
-
-### 16.2 Controllers iniciais
-
-- **HomeController:** pagina inicial do sistema.
-- **DashboardController:** painel inicial da aplicacao.
-- **AuthController:** login, validacao inicial e logout.
-- **AlunoController:** listagem, formulario e rotas iniciais do CRUD de alunos.
-- **ModuloController:** paginas iniciais para professores, turmas, disciplinas, matriculas e usuarios.
-- **ErrorController:** tratamento inicial de erro 404 e metodo nao permitido.
-
-### 16.3 Model inicial
-
-- **Aluno:** retorna dados simulados de alunos enquanto o banco de dados ainda nao foi implementado.
-
-### 16.4 Views iniciais
-
-- Layout principal reutilizavel.
-- Tela inicial.
-- Dashboard.
-- Login.
-- Listagem de alunos.
-- Formulario de aluno.
-- Paginas iniciais dos modulos.
-- Paginas de erro 404 e 405.
-
-### 16.5 Sistema de rotas funcional
-
-O arquivo `public/index.php` funciona como front controller e registra as rotas principais da aplicacao. O roteador fica em `core/Router.php`.
-
-Rotas disponiveis:
-
-```text
-GET  /
-GET  /dashboard
-GET  /login
-POST /login
-GET  /logout
-GET  /alunos
-GET  /alunos/criar
-POST /alunos/salvar
-GET  /alunos/editar/{id}
-POST /alunos/atualizar/{id}
-POST /alunos/excluir/{id}
-GET  /professores
-GET  /turmas
-GET  /disciplinas
-GET  /matriculas
-GET  /usuarios
-```
-
-### 16.6 Link do GitHub
-
-Repositorio local Git inicializado.
-
-Link do GitHub: [Repositório](https://github.com/isa-csilva/projeto-integrador)
+Não é necessário inicializar outro repositório, adicionar novamente o remoto ou renomear a branch para executar o projeto.
