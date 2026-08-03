@@ -1,0 +1,35 @@
+# Normaliza arquivos de texto para LF no repositório.
+* text=auto eol=lf
+
+# Código, configuração e documentação.
+*.php text eol=lf
+*.sql text eol=lf
+*.js text eol=lf
+*.css text eol=lf
+*.html text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+*.xml text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.ini text eol=lf
+*.svg text eol=lf
+LICENSE text eol=lf
+.htaccess text eol=lf
+.gitignore text eol=lf
+.gitattributes text eol=lf
+
+# Imagens, fontes, documentos e arquivos compactados são binários.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.pdf binary
+*.zip binary
+*.gz binary
+*.tar binary

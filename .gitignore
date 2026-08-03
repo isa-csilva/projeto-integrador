@@ -3,38 +3,43 @@
 .codex/
 
 # Dependências e ferramentas locais
-vendor/
-.phpunit.result.cache
+/vendor/
+/auth.json
+/.phpunit.result.cache
+/.phpunit.cache/
+/coverage/
 
 # Ambiente e configurações locais
 .env
 .env.*
 !.env.example
-config/database.local.php
+/config/database.local.php
 
 # Chaves e certificados privados
 *.key
 *.pem
 *.p12
 *.pfx
+.htpasswd
 
 # Arquivos de sistema e editor
 .DS_Store
 Thumbs.db
+Desktop.ini
 .vscode/
 .idea/
 *.swp
 *~
 
 # Uploads e arquivos gerados em tempo de execução
-public/uploads/*
-!public/uploads/.gitkeep
-logs/
-cache/
+/public/uploads/*
+!/public/uploads/.gitkeep
+/logs/
+/cache/
 *.log
 
 # Backups e arquivos temporários
-database/backups/
+/database/backups/
 *.tmp
 *.bak
 

@@ -6,7 +6,7 @@ class Aluno
 
     public function __construct(?PDO $connection = null)
     {
-        $this->connection = $connection ?: Database::getConnection();
+        $this->connection = $connection ?: Database::connect();
     }
 
     public function listarTodos()
