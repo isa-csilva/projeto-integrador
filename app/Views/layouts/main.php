@@ -1,14 +1,22 @@
 <?php
 $navigation = array(
-    array('path' => '/', 'label' => 'Início'),
-    array('path' => '/dashboard', 'label' => 'Dashboard'),
-    array('path' => '/alunos', 'label' => 'Alunos'),
-    array('path' => '/professores', 'label' => 'Professores'),
-    array('path' => '/turmas', 'label' => 'Turmas'),
-    array('path' => '/disciplinas', 'label' => 'Disciplinas'),
-    array('path' => '/matriculas', 'label' => 'Matrículas'),
-    array('path' => '/login', 'label' => 'Login')
+    array('path' => '/', 'label' => 'Início')
 );
+
+if ($layoutAuthUser !== null) {
+    $navigation[] = array('path' => '/dashboard', 'label' => 'Dashboard');
+    $navigation[] = array('path' => '/alunos', 'label' => 'Alunos');
+    $navigation[] = array('path' => '/professores', 'label' => 'Professores');
+    $navigation[] = array('path' => '/turmas', 'label' => 'Turmas');
+    $navigation[] = array('path' => '/disciplinas', 'label' => 'Disciplinas');
+    $navigation[] = array('path' => '/matriculas', 'label' => 'Matrículas');
+
+    if ($layoutCanManageUsers) {
+        $navigation[] = array('path' => '/usuarios', 'label' => 'Usuários');
+    }
+} else {
+    $navigation[] = array('path' => '/login', 'label' => 'Entrar');
+}
 ?>
 <!doctype html>
 <html lang="pt-BR">
@@ -23,16 +31,33 @@ $navigation = array(
 
     <header class="topbar">
         <a class="brand" href="<?= e(url('/')) ?>">Sistema Escolar</a>
-        <nav class="nav" aria-label="Menu principal">
-            <?php foreach ($navigation as $item): ?>
-                <?php $active = isActive($item['path']) === 'active'; ?>
-                <a
-                    class="<?= $active ? 'active' : '' ?>"
-                    href="<?= e(url($item['path'])) ?>"
-                    <?php if ($active): ?>aria-current="page"<?php endif; ?>
-                ><?= e($item['label']) ?></a>
-            <?php endforeach; ?>
-        </nav>
+
+        <div class="topbar-actions">
+            <nav class="nav" aria-label="Menu principal">
+                <?php foreach ($navigation as $item): ?>
+                    <?php $active = isActive($item['path']) === 'active'; ?>
+                    <a
+                        class="<?= $active ? 'active' : '' ?>"
+                        href="<?= e(url($item['path'])) ?>"
+                        <?php if ($active): ?>aria-current="page"<?php endif; ?>
+                    ><?= e($item['label']) ?></a>
+                <?php endforeach; ?>
+            </nav>
+
+            <?php if ($layoutAuthUser !== null): ?>
+                <div class="session-controls" aria-label="Sessão atual">
+                    <div class="session-user">
+                        <strong><?= e($layoutAuthUser['nome']) ?></strong>
+                        <span><?= e($layoutAuthProfileLabel) ?></span>
+                    </div>
+
+                    <form class="logout-form" action="<?= e(url('/logout')) ?>" method="post">
+                        <input type="hidden" name="_token" value="<?= e(csrfToken()) ?>">
+                        <button class="nav-button" type="submit">Sair</button>
+                    </form>
+                </div>
+            <?php endif; ?>
+        </div>
     </header>
 
     <main id="conteudo-principal" class="page" tabindex="-1">

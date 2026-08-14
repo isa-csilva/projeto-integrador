@@ -23,7 +23,11 @@ class AlunoController extends Controller
             'title' => 'Alunos',
             'alunos' => $alunos,
             'flash' => $this->pullFlash(),
-            'loadError' => $loadError
+            'loadError' => $loadError,
+            'canManage' => Auth::hasAnyProfile(array(
+                Usuario::PERFIL_ADMINISTRADOR,
+                Usuario::PERFIL_SECRETARIA
+            ))
         ));
     }
 

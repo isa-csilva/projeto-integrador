@@ -6,5 +6,4 @@
 
 <div class="form-actions align-start">
     <a class="button" href="<?= e(url('/')) ?>">Voltar ao início</a>
-    <a class="button secondary" href="<?= e(url('/alunos')) ?>">Ver alunos</a>
 </div>

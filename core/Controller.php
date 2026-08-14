@@ -18,6 +18,12 @@ class Controller
             }
         }
 
+        $layoutAuthUser = Auth::user();
+        $layoutAuthProfileLabel = $layoutAuthUser !== null
+            ? Auth::profileLabel($layoutAuthUser['perfil'])
+            : null;
+        $layoutCanManageUsers = Auth::hasAnyProfile(Usuario::PERFIL_ADMINISTRADOR);
+
         extract($data, EXTR_SKIP);
         require VIEW_PATH . '/layouts/main.php';
     }
