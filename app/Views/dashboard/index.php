@@ -1,30 +1,42 @@
+<?php
+$authFlash = isset($authFlash) && is_array($authFlash) ? $authFlash : null;
+$authFlashType = $authFlash && isset($authFlash['type']) && $authFlash['type'] === 'success'
+    ? 'success'
+    : 'error';
+$canManageStudents = !empty($canManageStudents);
+$canManageUsers = !empty($canManageUsers);
+?>
+
 <section class="page-header compact">
-    <p class="eyebrow">Painel do projeto</p>
+    <p class="eyebrow">Entrega Parcial 5</p>
     <h1>Dashboard</h1>
-    <p>Visão geral dos módulos planejados para o Sistema de Gestão Escolar.</p>
+    <p>Acesse os módulos liberados para o perfil da sua conta.</p>
 </section>
 
+<?php if ($authFlash && !empty($authFlash['message'])): ?>
+    <div
+        class="alert alert-<?= e($authFlashType) ?>"
+        role="<?= $authFlashType === 'error' ? 'alert' : 'status' ?>"
+    >
+        <?= e($authFlash['message']) ?>
+    </div>
+<?php endif; ?>
+
 <section class="panel" aria-labelledby="modulos-heading">
-    <?php if ($usuario): ?>
-        <div class="alert alert-info" role="status">
-            Sessão de demonstração ativa para <?= e($usuario['nome']) ?>, perfil <?= e($usuario['perfil']) ?>.
-        </div>
-    <?php else: ?>
-        <div class="alert alert-info">
-            Nenhuma sessão de demonstração está ativa.
-            <a href="<?= e(url('/login')) ?>">Acessar o login</a>.
-        </div>
-    <?php endif; ?>
+    <div class="alert alert-info" role="status">
+        Bem-vindo, <?= e($usuario['nome'] ?? '') ?>.
+        Perfil: <?= e($usuario['perfil_label'] ?? '') ?>.
+    </div>
 
     <div class="section-heading">
-        <h2 id="modulos-heading">Módulos do projeto</h2>
-        <p class="section-description">Nesta entrega, somente o cadastro e a listagem de alunos utilizam persistência. As demais páginas apresentam a estrutura inicial de rotas.</p>
+        <h2 id="modulos-heading">Módulos permitidos</h2>
+        <p class="section-description">A autorização também é verificada no servidor ao acessar cada rota.</p>
     </div>
 
     <div class="module-grid">
         <a href="<?= e(url('/alunos')) ?>">
             <span>Alunos</span>
-            <small>Cadastro e listagem</small>
+            <small><?= $canManageStudents ? 'Cadastro, consulta, edição e exclusão' : 'Consulta dos registros' ?></small>
         </a>
         <a href="<?= e(url('/professores')) ?>">
             <span>Professores</span>
@@ -42,9 +54,11 @@
             <span>Matrículas</span>
             <small>Estrutura inicial</small>
         </a>
-        <a href="<?= e(url('/usuarios')) ?>">
-            <span>Usuários</span>
-            <small>Estrutura inicial</small>
-        </a>
+        <?php if ($canManageUsers): ?>
+            <a href="<?= e(url('/usuarios')) ?>">
+                <span>Usuários</span>
+                <small>Contas e perfis de acesso</small>
+            </a>
+        <?php endif; ?>
     </div>
 </section>

@@ -1,18 +1,40 @@
 <?php
 $errors = isset($errors) && is_array($errors) ? $errors : array();
 $old = isset($old) && is_array($old) ? $old : array();
+$formError = isset($formError) ? $formError : null;
+$flash = isset($flash) && is_array($flash) ? $flash : null;
+$flashType = $flash && isset($flash['type']) && $flash['type'] === 'success'
+    ? 'success'
+    : 'error';
 ?>
 
 <section class="page-header compact">
-    <p class="eyebrow">Demonstração</p>
-    <h1>Login</h1>
-    <p>Este formulário valida os campos e inicia uma sessão local de demonstração. A autenticação persistente e o controle de perfis serão implementados em uma etapa futura.</p>
+    <p class="eyebrow">Entrega Parcial 5</p>
+    <h1>Entrar</h1>
+    <p>Use uma conta ativa para acessar os módulos permitidos ao seu perfil.</p>
 </section>
 
 <section class="panel narrow" aria-labelledby="login-heading">
     <h2 id="login-heading" class="sr-only">Formulário de login</h2>
 
+    <?php if ($flash && !empty($flash['message'])): ?>
+        <div
+            class="alert alert-<?= e($flashType) ?>"
+            role="<?= $flashType === 'error' ? 'alert' : 'status' ?>"
+        >
+            <?= e($flash['message']) ?>
+        </div>
+    <?php endif; ?>
+
+    <?php if (!empty($formError)): ?>
+        <div class="alert alert-error" role="alert" tabindex="-1">
+            <?= e($formError) ?>
+        </div>
+    <?php endif; ?>
+
     <form class="form" action="<?= e(url('/login')) ?>" method="post">
+        <input type="hidden" name="_token" value="<?= e(csrfToken()) ?>">
+
         <div class="form-field">
             <label for="email">E-mail</label>
             <input
@@ -23,7 +45,6 @@ $old = isset($old) && is_array($old) ? $old : array();
                 autocomplete="email"
                 inputmode="email"
                 maxlength="150"
-                placeholder="admin@escola.com"
                 required
                 <?php if (isset($errors['email'])): ?>aria-invalid="true" aria-describedby="login-email-error"<?php endif; ?>
             >
@@ -40,7 +61,6 @@ $old = isset($old) && is_array($old) ? $old : array();
                 type="password"
                 autocomplete="current-password"
                 maxlength="255"
-                placeholder="Digite sua senha"
                 required
                 <?php if (isset($errors['senha'])): ?>aria-invalid="true" aria-describedby="senha-error"<?php endif; ?>
             >
@@ -49,6 +69,8 @@ $old = isset($old) && is_array($old) ? $old : array();
             <?php endif; ?>
         </div>
 
-        <button class="button full" type="submit">Iniciar sessão de demonstração</button>
+        <button class="button full" type="submit">Entrar</button>
     </form>
+
+    <p class="feature-note">A senha é comparada com o hash armazenado no banco e nunca é salva na sessão.</p>
 </section>

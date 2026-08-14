@@ -2,68 +2,179 @@
 
 class AuthController extends Controller
 {
-    public function login($errors = array(), $old = array())
+    private const FORM_KEY = 'auth_login_form';
+    private const DUMMY_HASH = '$2y$12$dFIs8DvS.Ro.p.7iqhL7reFVcHQpjANC4UB4uqef11BiCoe1Bj3CC';
+
+    public function login()
     {
+        if (Auth::check()) {
+            $this->redirect('/dashboard');
+        }
+
+        $formState = $this->pullFormState();
+
         $this->view('auth.login', array(
-            'title' => 'Login',
-            'errors' => $errors,
-            'old' => $old
+            'title' => 'Entrar',
+            'errors' => isset($formState['errors']) && is_array($formState['errors'])
+                ? $formState['errors']
+                : array(),
+            'old' => isset($formState['old']) && is_array($formState['old'])
+                ? $formState['old']
+                : array(),
+            'formError' => isset($formState['formError'])
+                ? (string) $formState['formError']
+                : null,
+            'flash' => Auth::pullFlash()
         ));
     }
 
     public function authenticate()
     {
+        if (Auth::check()) {
+            $this->redirect('/dashboard', 303);
+        }
+
         $email = isset($_POST['email']) && is_string($_POST['email'])
-            ? trim($_POST['email'])
+            ? strtolower(trim($_POST['email']))
             : '';
         $senha = isset($_POST['senha']) && is_string($_POST['senha'])
             ? $_POST['senha']
             : '';
-        $errors = array();
+        $errors = $this->validate($email, $senha);
 
-        if ($email == '') {
-            $errors['email'] = 'Informe o e-mail.';
-        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $errors['email'] = 'Informe um e-mail válido.';
-        }
-
-        if ($senha == '') {
-            $errors['senha'] = 'Informe a senha.';
+        if (!$this->hasValidCsrfToken()) {
+            $this->redirectToLogin(
+                array(),
+                $email,
+                'Sua sessão expirou. Recarregue o formulário e tente novamente.'
+            );
         }
 
         if (!empty($errors)) {
-            $this->login($errors, array('email' => $email));
-            return;
+            $this->redirectToLogin($errors, $email);
         }
 
-        session_regenerate_id(true);
-        $_SESSION['usuario'] = array(
-            'nome' => 'Administrador',
-            'email' => $email,
-            'perfil' => 'Administrador'
-        );
+        try {
+            $usuarioModel = new Usuario();
+            $usuario = $usuarioModel->buscarPorEmail($email);
+            $hash = $usuario !== null
+                && isset($usuario['senha_hash'])
+                && is_string($usuario['senha_hash'])
+                ? $usuario['senha_hash']
+                : self::DUMMY_HASH;
+            $senhaValida = password_verify($senha, $hash);
 
-        $this->redirect('/dashboard');
+            if (
+                $usuario === null
+                || !$senhaValida
+                || !isset($usuario['ativo'])
+                || (int) $usuario['ativo'] !== 1
+                || !Usuario::perfilValido($usuario['perfil'] ?? null)
+            ) {
+                $this->redirectToLogin(
+                    array(),
+                    $email,
+                    'E-mail ou senha inválidos.'
+                );
+            }
+
+            $destination = Auth::pullIntended('/dashboard');
+            $this->rehashPasswordIfNeeded($usuarioModel, $usuario, $senha, $hash);
+            Auth::login($usuario);
+        } catch (Throwable $exception) {
+            error_log('[AuthController::authenticate] ' . $exception->getMessage());
+            $this->redirectToLogin(
+                array(),
+                $email,
+                'Não foi possível entrar agora. Verifique o banco de dados e tente novamente.'
+            );
+        }
+
+        $this->redirect($destination, 303);
     }
 
     public function logout()
     {
-        $_SESSION = array();
-
-        if (ini_get('session.use_cookies')) {
-            $params = session_get_cookie_params();
-            setcookie(
-                session_name(),
-                '',
-                time() - 42000,
-                $params['path'],
-                $params['domain'],
-                $params['secure'],
-                $params['httponly']
-            );
+        if (!$this->hasValidCsrfToken()) {
+            Auth::setFlash('error', 'Não foi possível encerrar a sessão. Tente novamente.');
+            $this->redirect('/dashboard', 303);
         }
 
-        session_destroy();
-        $this->redirect('/login');
+        Auth::logout();
+        Auth::setFlash('success', 'Sessão encerrada com sucesso.');
+        $this->redirect('/login', 303);
+    }
+
+    private function validate($email, $senha)
+    {
+        $errors = array();
+
+        if ($email === '') {
+            $errors['email'] = 'Informe o e-mail.';
+        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errors['email'] = 'Informe um e-mail válido.';
+        } elseif (strlen($email) > 150) {
+            $errors['email'] = 'O e-mail deve ter no máximo 150 caracteres.';
+        }
+
+        if ($senha === '') {
+            $errors['senha'] = 'Informe a senha.';
+        } elseif (strlen($senha) > 255) {
+            $errors['senha'] = 'A senha informada é muito longa.';
+        }
+
+        return $errors;
+    }
+
+    private function rehashPasswordIfNeeded($usuarioModel, $usuario, $senha, $hash)
+    {
+        if (!password_needs_rehash($hash, PASSWORD_DEFAULT)) {
+            return;
+        }
+
+        $newHash = password_hash($senha, PASSWORD_DEFAULT);
+
+        if (!is_string($newHash)) {
+            return;
+        }
+
+        try {
+            $usuarioModel->atualizarSenha((int) $usuario['id'], $newHash);
+        } catch (Throwable $exception) {
+            error_log('[AuthController::rehashPasswordIfNeeded] ' . $exception->getMessage());
+        }
+    }
+
+    private function hasValidCsrfToken()
+    {
+        $token = isset($_POST['_token']) && is_string($_POST['_token'])
+            ? $_POST['_token']
+            : null;
+
+        return csrfIsValid($token);
+    }
+
+    private function redirectToLogin($errors, $email, $formError = null)
+    {
+        $_SESSION[self::FORM_KEY] = array(
+            'errors' => $errors,
+            'old' => array('email' => $email),
+            'formError' => $formError
+        );
+
+        $this->redirect('/login', 303);
+    }
+
+    private function pullFormState()
+    {
+        $formState = array();
+
+        if (isset($_SESSION[self::FORM_KEY]) && is_array($_SESSION[self::FORM_KEY])) {
+            $formState = $_SESSION[self::FORM_KEY];
+        }
+
+        unset($_SESSION[self::FORM_KEY]);
+
+        return $formState;
     }
 }

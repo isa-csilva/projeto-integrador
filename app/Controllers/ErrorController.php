@@ -12,6 +12,11 @@ class ErrorController extends Controller
         $this->view('errors.405', array('title' => 'Método não permitido'));
     }
 
+    public function forbidden()
+    {
+        $this->view('errors.403', array('title' => 'Acesso negado'));
+    }
+
     public function internalServerError()
     {
         $this->view('errors.500', array('title' => 'Erro interno'));

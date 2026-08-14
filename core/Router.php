@@ -4,22 +4,27 @@ class Router
 {
     private $routes = array();
 
-    public function get($path, $handler)
+    public function get($path, $handler, $middleware = array())
     {
-        $this->add('GET', $path, $handler);
+        $this->add('GET', $path, $handler, $middleware);
     }
 
-    public function post($path, $handler)
+    public function post($path, $handler, $middleware = array())
     {
-        $this->add('POST', $path, $handler);
+        $this->add('POST', $path, $handler, $middleware);
     }
 
-    private function add($method, $path, $handler)
+    private function add($method, $path, $handler, $middleware)
     {
+        if (!is_array($middleware)) {
+            throw new InvalidArgumentException('A lista de middleware da rota deve ser um array.');
+        }
+
         $this->routes[] = array(
             'method' => strtoupper($method),
             'path' => $this->formatPath($path),
-            'handler' => $handler
+            'handler' => $handler,
+            'middleware' => $middleware
         );
     }
 
@@ -44,6 +49,10 @@ class Router
                 continue;
             }
 
+            if (!$this->authorize($route['middleware'], $method, $path)) {
+                return;
+            }
+
             $this->run($route['handler'], $params);
             return;
         }
@@ -64,6 +73,65 @@ class Router
         http_response_code(404);
         $controller = new ErrorController();
         $controller->notFound();
+    }
+
+    private function authorize($middleware, $method, $path)
+    {
+        $requiresAuthentication = in_array('auth', $middleware, true);
+        $allowedProfiles = array();
+
+        foreach ($middleware as $rule) {
+            if (!is_string($rule)) {
+                throw new RuntimeException('Middleware de rota inválido.');
+            }
+
+            if (strpos($rule, 'perfil:') !== 0) {
+                continue;
+            }
+
+            $requiresAuthentication = true;
+            $profiles = explode(',', substr($rule, strlen('perfil:')));
+
+            foreach ($profiles as $profile) {
+                $profile = trim($profile);
+
+                if ($profile !== '') {
+                    $allowedProfiles[] = $profile;
+                }
+            }
+        }
+
+        if (!$requiresAuthentication) {
+            return true;
+        }
+
+        if (!Auth::check()) {
+            if ($method === 'GET') {
+                Auth::rememberIntended($path);
+            }
+
+            Auth::setFlash('error', 'Faça login para continuar.', false);
+            $status = $method === 'GET' ? 302 : 303;
+            http_response_code($status);
+
+            if (!headers_sent()) {
+                header('Location: ' . url('/login'), true, $status);
+            }
+
+            return false;
+        }
+
+        $allowedProfiles = array_values(array_unique($allowedProfiles));
+
+        if (!empty($allowedProfiles) && !Auth::hasAnyProfile($allowedProfiles)) {
+            http_response_code(403);
+            $controller = new ErrorController();
+            $controller->forbidden();
+
+            return false;
+        }
+
+        return true;
     }
 
     private function run($handler, $params)
