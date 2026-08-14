@@ -10,6 +10,10 @@ $router->get('/logout', array('AuthController', 'logout'));
 $router->get('/alunos', array('AlunoController', 'index'));
 $router->get('/alunos/criar', array('AlunoController', 'create'));
 $router->post('/alunos/salvar', array('AlunoController', 'store'));
+$router->get('/alunos/{id}/editar', array('AlunoController', 'edit'));
+$router->post('/alunos/{id}/atualizar', array('AlunoController', 'update'));
+$router->get('/alunos/{id}/excluir', array('AlunoController', 'confirmDelete'));
+$router->post('/alunos/{id}/excluir', array('AlunoController', 'destroy'));
 
 $router->get('/professores', array('ModuloController', 'professores'));
 $router->get('/turmas', array('ModuloController', 'turmas'));

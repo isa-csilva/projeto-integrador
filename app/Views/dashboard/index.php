@@ -18,13 +18,13 @@
 
     <div class="section-heading">
         <h2 id="modulos-heading">Módulos do projeto</h2>
-        <p class="section-description">Nesta entrega, somente o cadastro e a listagem de alunos utilizam persistência. As demais páginas apresentam a estrutura inicial de rotas.</p>
+        <p class="section-description">Nesta entrega, o CRUD completo de alunos utiliza persistência. As demais páginas apresentam a estrutura inicial de rotas.</p>
     </div>
 
     <div class="module-grid">
         <a href="<?= e(url('/alunos')) ?>">
             <span>Alunos</span>
-            <small>Cadastro e listagem</small>
+            <small>Cadastro, consulta, edição e exclusão</small>
         </a>
         <a href="<?= e(url('/professores')) ?>">
             <span>Professores</span>

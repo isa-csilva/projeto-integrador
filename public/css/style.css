@@ -250,6 +250,16 @@ button:hover {
     border-color: var(--primary-strong);
 }
 
+.button.danger {
+    background: var(--danger);
+    border-color: var(--danger);
+}
+
+.button.danger:hover {
+    background: #991b1b;
+    border-color: #991b1b;
+}
+
 .button.full {
     width: 100%;
 }
@@ -344,7 +354,7 @@ code {
 
 table {
     border-collapse: collapse;
-    min-width: 680px;
+    min-width: 860px;
     width: 100%;
 }
 
@@ -374,6 +384,13 @@ tbody tr:last-child td {
 .empty-state a {
     color: var(--primary-strong);
     font-weight: 700;
+}
+
+.table-actions {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
 .form {
@@ -448,6 +465,34 @@ tbody tr:last-child td {
     font-size: 13px;
     margin: 22px 0 0;
     padding-top: 14px;
+}
+
+.record-summary {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin: 18px 0;
+}
+
+.record-summary div {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: minmax(90px, 0.35fr) minmax(0, 1fr);
+    padding: 11px 13px;
+}
+
+.record-summary div + div {
+    border-top: 1px solid var(--border);
+}
+
+.record-summary dt {
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.record-summary dd {
+    margin: 0;
+    overflow-wrap: anywhere;
 }
 
 .sr-only {
@@ -573,7 +618,7 @@ tbody tr:last-child td {
 
     .form-actions {
         align-items: stretch;
-        flex-direction: column-reverse;
+        flex-direction: column;
     }
 
     .form-actions .button,

@@ -1,7 +1,7 @@
 <section class="page-header">
-    <p class="eyebrow">Entregas Parciais 2 e 3</p>
+    <p class="eyebrow">Entregas Parciais 2, 3 e 4</p>
     <h1>Sistema de Gestão Escolar</h1>
-    <p>Aplicação acadêmica em PHP com arquitetura MVC, rotas amigáveis e cadastro de alunos persistido em MySQL.</p>
+    <p>Aplicação acadêmica em PHP com arquitetura MVC, rotas amigáveis e CRUD completo de alunos persistido em MySQL.</p>
 </section>
 
 <section class="summary-grid" aria-label="Resumo das entregas">

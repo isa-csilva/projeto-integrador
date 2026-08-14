@@ -7,7 +7,7 @@
 </h1>
 
 <p align="center">
-  Aplicação web acadêmica para centralizar cadastros e consultas escolares,
+  Aplicação web acadêmica para gerenciar cadastros escolares com CRUD completo,
   desenvolvida em PHP com arquitetura MVC e persistência MySQL via PDO.
 </p>
 
@@ -20,6 +20,7 @@
   <img alt="Licença MIT" src="https://img.shields.io/badge/licen%C3%A7a-MIT-22c55e"/>
   <img alt="Parcial 2" src="https://img.shields.io/badge/Parcial%202-conclu%C3%ADda-2ea44f"/>
   <img alt="Parcial 3" src="https://img.shields.io/badge/Parcial%203-implementada-2ea44f"/>
+  <img alt="Parcial 4" src="https://img.shields.io/badge/Parcial%204-conclu%C3%ADda-2ea44f"/>
 </p>
 
 ---
@@ -75,8 +76,8 @@
 
 O Sistema de Gestão Escolar foi planejado para centralizar informações
 acadêmicas e administrativas de pequenas e médias instituições de ensino.
-Nesta etapa, a aplicação entrega a base arquitetural completa e o fluxo inicial
-de cadastro e consulta de alunos.
+Nesta etapa, a aplicação entrega a base arquitetural e o gerenciamento completo
+de alunos, com cadastro, consulta, edição e exclusão.
 
 A solução implementa:
 
@@ -84,9 +85,12 @@ A solução implementa:
 - separação entre controllers, models e views;
 - cadastro de alunos persistido no MySQL;
 - listagem ordenada dos alunos cadastrados;
+- edição dos dados de alunos existentes;
+- exclusão mediante uma tela explícita de confirmação;
 - validação dos campos obrigatórios e do formato de e-mail;
 - detecção de e-mail e matrícula duplicados;
 - mensagens flash e fluxo Post/Redirect/Get;
+- proteção CSRF nas operações de escrita do módulo de alunos;
 - páginas de erro 404, 405 e 500;
 - interface responsiva em português brasileiro; e
 - suporte à instalação em uma subpasta do <code>htdocs</code>.
@@ -97,12 +101,11 @@ A solução implementa:
 | --- | --- | --- |
 | Parcial 2 — Estrutura MVC e Rotas | ✅ Concluída | MVC, controllers, views, front controller, rotas e páginas de erro |
 | Parcial 3 — CRUD Inicial | ✅ Implementada | PDO, schema MySQL e operações Create e Read de alunos |
-| Parcial 4 — CRUD Completo | 🔜 Futura | Visualização, edição e exclusão |
+| Parcial 4 — CRUD Completo | ✅ Concluída | Create, Read, Update e Delete de alunos, com validações e mensagens |
 
 > [!NOTE]
-> Nesta etapa, “CRUD inicial” corresponde às operações **Create e Read**.
-> Update, Delete e upload de arquivos permanecem explicitamente como
-> funcionalidades futuras.
+> A entidade principal **Aluno** possui CRUD completo. Upload de arquivos e os
+> CRUDs dos demais módulos permanecem como funcionalidades futuras.
 
 ---
 
@@ -129,9 +132,11 @@ Router
     │ seleciona controller e ação
     ▼
 AlunoController
-    ├── valida os dados
-    ├── coordena mensagens e redirecionamentos
-    ├── chama o model Aluno ──► Database ──► MySQL
+    ├── coordena validação, mensagens e redirecionamentos
+    ├── chama o model Aluno ──► normalização, validação e persistência
+    │                              │
+    │                              ▼
+    │                          Database ──► MySQL
     └── envia dados prontos para a View
                                 │
                                 ▼
@@ -145,8 +150,8 @@ AlunoController
 | Entrada | <code>public/index.php</code> | Inicializa a aplicação e despacha a requisição |
 | Definição de rotas | <code>routes/web.php</code> | Centraliza caminhos, métodos e handlers sem duplicidades |
 | Roteamento | <code>core/Router.php</code> | Diferencia caminhos, parâmetros e métodos HTTP |
-| Controller | <code>app/Controllers</code> | Valida entradas e coordena o fluxo |
-| Model | <code>app/Models/Aluno.php</code> | Executa as operações de dados com PDO |
+| Controller | <code>app/Controllers</code> | Coordena validação, mensagens e fluxo HTTP |
+| Model | <code>app/Models/Aluno.php</code> | Normaliza, valida e executa as operações de dados com PDO |
 | Banco | <code>core/Database.php</code> | Expõe <code>Database::connect()</code> e reutiliza a conexão PDO |
 | View | <code>app/Views</code> | Renderiza somente os dados recebidos |
 | Layout | <code>app/Views/layouts/main.php</code> | Reutiliza navegação, assets e estrutura HTML |
@@ -170,8 +175,8 @@ são escapadas com o helper <code>e()</code>.
 | Aula | Conceito considerado | Aplicação ou delimitação no projeto |
 | --- | --- | --- |
 | Aula 01 — POO com PHP | Classes coesas, encapsulamento e reutilização | Controllers herdam de <code>Controller</code>; Router, Database e Model têm responsabilidades próprias |
-| Aula 08 — CRUD Update e Delete | Atualização, exclusão segura e confirmação | Operações reservadas para a Parcial 4, sem simular um CRUD completo nesta etapa |
-| Aula 09 — Requisições e Respostas HTTP | GET para consulta, POST para envio e validação no servidor | Rotas distinguem os verbos; cadastro usa POST, PRG e mensagens amigáveis |
+| Aula 08 — CRUD Update e Delete | Atualização, exclusão segura e confirmação | Model, Controller, Views e rotas implementam edição e exclusão de alunos |
+| Aula 09 — Requisições e Respostas HTTP | GET para consulta, POST para escrita e validação no servidor | Rotas distinguem os verbos; Create, Update e Delete usam POST, CSRF, PRG e mensagens amigáveis |
 | Aula 10 — Boas Práticas e Segurança | Responsabilidade única, prepared statements, escape e erros seguros | SQL fica no Model, <code>e()</code> protege a saída e detalhes técnicos vão para o log |
 | Aula 11 — Sessões e Cookies | Estado da navegação e encerramento correto da sessão | Sessão inicia antes da saída, armazena mensagens flash e é regenerada no login demonstrativo |
 | Aula 12 — Autenticação e Autorização | Identidade e permissões são responsabilidades diferentes | Login atual é demonstrativo; autenticação persistente e autorização por perfil estão documentadas como futuras |
@@ -187,7 +192,7 @@ mesmas, mas ficam separadas entre configuração e infraestrutura.
 
 ---
 
-## 3️⃣ Cadastro e Listagem de Alunos
+## 3️⃣ Gerenciamento de Alunos
 
 ### Campos persistidos
 
@@ -204,7 +209,8 @@ mesmas, mas ficam separadas entre configuração e infraestrutura.
 
 1. O usuário acessa <code>GET /alunos/criar</code>.
 2. O formulário envia os dados para <code>POST /alunos/salvar</code>.
-3. O controller normaliza e valida nome, e-mail, matrícula e turma.
+3. O model normaliza e valida nome, e-mail, matrícula e turma; o controller
+   coordena o fluxo.
 4. O model verifica duplicidades com prepared statements.
 5. O aluno é inserido no MySQL.
 6. A aplicação responde com redirecionamento 303 para <code>/alunos</code>.
@@ -213,6 +219,28 @@ mesmas, mas ficam separadas entre configuração e infraestrutura.
 Quando ocorre um erro, os valores válidos permanecem preenchidos e cada
 mensagem aparece próxima ao campo correspondente. Falhas inesperadas recebem
 uma mensagem genérica; detalhes técnicos ficam somente no log do PHP.
+
+### Fluxo da edição
+
+1. O usuário escolhe **Editar** na listagem e acessa
+   <code>GET /alunos/{id}/editar</code>.
+2. O formulário é preenchido com os dados atuais e envia
+   <code>POST /alunos/{id}/atualizar</code>.
+3. O model valida os campos e verifica duplicidades, desconsiderando o próprio
+   registro.
+4. A atualização usa prepared statement e responde com redirecionamento 303,
+   mesmo quando os valores enviados não foram alterados.
+5. A listagem apresenta a mensagem de sucesso ou o formulário apresenta os
+   erros com os valores preservados.
+
+### Fluxo da exclusão
+
+1. O usuário escolhe **Excluir** e acessa uma página de confirmação por GET.
+2. A confirmação mostra os dados do aluno sem executar qualquer exclusão.
+3. Somente o formulário <code>POST /alunos/{id}/excluir</code>, protegido por
+   token CSRF, solicita a remoção ao model.
+4. A aplicação redireciona para a listagem e exibe uma mensagem de sucesso ou
+   erro.
 
 ---
 
@@ -228,6 +256,10 @@ uma mensagem genérica; detalhes técnicos ficam somente no log do PHP.
 | <code>GET</code> | <code>/alunos</code> | Listagem consultada no MySQL |
 | <code>GET</code> | <code>/alunos/criar</code> | Formulário de novo aluno |
 | <code>POST</code> | <code>/alunos/salvar</code> | Validação e persistência |
+| <code>GET</code> | <code>/alunos/{id}/editar</code> | Formulário preenchido para edição |
+| <code>POST</code> | <code>/alunos/{id}/atualizar</code> | Validação e atualização |
+| <code>GET</code> | <code>/alunos/{id}/excluir</code> | Confirmação da exclusão |
+| <code>POST</code> | <code>/alunos/{id}/excluir</code> | Exclusão confirmada do registro |
 | <code>GET</code> | <code>/professores</code> | Estrutura inicial do módulo |
 | <code>GET</code> | <code>/turmas</code> | Estrutura inicial do módulo |
 | <code>GET</code> | <code>/disciplinas</code> | Estrutura inicial do módulo |
@@ -304,15 +336,18 @@ configuração do Apache/PHP.
 | Sintaxe de todos os arquivos PHP | ✅ Aprovada |
 | Sintaxe de <code>public/js/app.js</code> | ✅ Aprovada |
 | Rotas GET obrigatórias | ✅ 200 ou redirecionamento esperado |
-| Post/Redirect/Get do cadastro | ✅ Resposta 303 |
+| Post/Redirect/Get de Create, Update e Delete | ✅ Resposta 303 |
+| Proteção CSRF nas escritas de alunos | ✅ Token obrigatório e validado |
 | Rota inexistente | ✅ 404 |
 | Método HTTP incompatível | ✅ 405 com cabeçalho <code>Allow</code> |
 | Valores preservados após validação | ✅ Aprovado |
 | Falhas de banco sem vazamento de detalhes | ✅ Aprovado |
 | SQL dentro das views | ✅ Nenhuma ocorrência |
 | Dados simulados no model | ✅ Nenhuma ocorrência |
+| CRUD do Model com PDO/SQLite em memória | ✅ Create, Read, Update e Delete aprovados |
+| Fluxos de Update e Delete no Controller | ✅ Persistência e mensagens aprovadas com PDO |
 | <code>git diff --check</code> | ✅ Aprovado |
-| Inserção e consulta com MySQL local | ⚠️ Pendente de credenciais válidas |
+| CRUD completo com MySQL local | ⚠️ Pendente de uma instância MySQL/XAMPP ativa |
 
 ### Tratamentos implementados
 
@@ -320,8 +355,12 @@ configuração do Apache/PHP.
 - e-mail inválido;
 - e-mail duplicado;
 - matrícula duplicada;
+- identificador inválido ou registro inexistente;
 - falha de conexão com o banco;
-- erro inesperado durante o cadastro;
+- erro inesperado durante cadastro, atualização ou exclusão;
+- atualização sem alteração dos valores;
+- exclusão somente após confirmação por POST;
+- requisição de escrita sem token CSRF válido;
 - listagem vazia;
 - rota inexistente;
 - método HTTP não permitido.
@@ -365,7 +404,7 @@ Set-Location projeto-integrador
 git switch master
 ~~~
 
-### Demonstração de Create e Read
+### Demonstração do CRUD completo
 
 1. Acesse <code>/alunos</code>.
 2. Clique em **Novo aluno**.
@@ -374,6 +413,11 @@ git switch master
 5. Atualize a página e confirme que o registro continua listado.
 6. Repita o e-mail com outra matrícula e confira a validação.
 7. Repita a matrícula com outro e-mail e confira a validação.
+8. Clique em **Editar**, altere um campo e confirme a mensagem de sucesso.
+9. Atualize a página e confira se a alteração permaneceu no banco.
+10. Clique em **Excluir**, cancele uma vez e confirme que o registro permanece.
+11. Abra novamente a confirmação, conclua a exclusão e confira a mensagem de
+    sucesso e a remoção da listagem.
 
 Se uma rota interna retornar 404 do próprio Apache, verifique
 <code>mod_rewrite</code>, <code>AllowOverride</code> e reinicie o serviço.
@@ -437,7 +481,12 @@ projeto-integrador/
 - **Prepared statements reais:** evita a concatenação de dados do formulário
   no SQL.
 - **Conexão centralizada:** reutiliza uma instância PDO durante a requisição.
-- **Post/Redirect/Get:** impede o reenvio acidental após o cadastro.
+- **Post/Redirect/Get:** impede o reenvio acidental após cadastro, edição ou
+  exclusão.
+- **Confirmação antes da exclusão:** uma página GET informa qual registro será
+  removido, enquanto somente o formulário POST executa a operação.
+- **Proteção CSRF:** tokens de sessão são obrigatórios nas operações de escrita
+  do módulo de alunos.
 - **Restrições únicas no MySQL:** protegem e-mail e matrícula mesmo em
   requisições concorrentes.
 - **Escape na saída:** reduz o risco de XSS nas views.
@@ -447,16 +496,12 @@ projeto-integrador/
 
 - o login é demonstrativo e ainda não consulta usuários no banco;
 - não há controle de autorização por perfil;
-- a proteção CSRF dos formulários ainda será adicionada em uma etapa de
-  segurança;
-- edição e exclusão de alunos pertencem à Parcial 4;
 - upload de fotos e documentos ainda não foi implementado;
 - os demais módulos possuem somente a estrutura inicial;
 - a validação final da persistência depende do MySQL configurado no XAMPP.
 
 ### Próximas etapas
 
-- implementar Update e Delete de alunos;
 - adicionar autenticação persistente e senhas com hash;
 - proteger rotas por sessão e perfil;
 - desenvolver os CRUDs dos demais módulos;
@@ -470,6 +515,7 @@ projeto-integrador/
 - Nunca versione senhas reais ou dados pessoais.
 - Não adicione arquivos <code>.env</code>, logs ou uploads ao Git.
 - Use credenciais próprias para cada ambiente.
+- Preserve a validação CSRF em todo novo formulário que altere dados.
 - Mantenha <code>display_errors</code> desabilitado em produção.
 - Consulte os detalhes técnicos somente nos logs do PHP.
 
