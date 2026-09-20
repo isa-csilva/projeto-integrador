@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: sistema-escolar
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /login
+    envVars:
+      - key: PORT
+        value: "80"
+      - key: SESSION_SECURE_COOKIE
+        value: "1"
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASS
+        sync: false
+      - key: DB_SSL_CA
+        value: /etc/secrets/ca.pem

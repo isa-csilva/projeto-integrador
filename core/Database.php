@@ -18,16 +18,27 @@ class Database
             $config['name']
         );
 
+        $options = array(
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES => false
+        );
+
+        if ($config['ssl_ca'] !== '') {
+            if (!is_readable($config['ssl_ca'])) {
+                throw new RuntimeException('Certificado CA do banco indisponível.');
+            }
+
+            $options[PDO::MYSQL_ATTR_SSL_CA] = $config['ssl_ca'];
+            $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = true;
+        }
+
         try {
             self::$connection = new PDO(
                 $dsn,
                 $config['user'],
                 $config['pass'],
-                array(
-                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                    PDO::ATTR_EMULATE_PREPARES => false
-                )
+                $options
             );
         } catch (PDOException $exception) {
             error_log('[Database] Falha na conexão: ' . $exception->getMessage());
