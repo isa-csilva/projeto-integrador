@@ -1,9 +1,9 @@
 <?php
 
-$secureCookies = isset($_SERVER['HTTPS'])
+$secureCookies = getenv('SESSION_SECURE_COOKIE') === '1' || (isset($_SERVER['HTTPS'])
     && is_string($_SERVER['HTTPS'])
     && $_SERVER['HTTPS'] !== ''
-    && strtolower($_SERVER['HTTPS']) !== 'off';
+    && strtolower($_SERVER['HTTPS']) !== 'off');
 
 ini_set('session.use_strict_mode', '1');
 ini_set('session.use_only_cookies', '1');

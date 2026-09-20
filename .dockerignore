@@ -1,0 +1,12 @@
+.git
+.agents
+.codex
+.env
+.env.*
+**/*.pem
+**/*.key
+**/*.log
+config/database.local.php
+database/backups
+public/uploads
+vendor

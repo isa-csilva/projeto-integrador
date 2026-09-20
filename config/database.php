@@ -11,5 +11,6 @@ return array(
     'port' => (int) $env('DB_PORT', 3306),
     'name' => (string) $env('DB_NAME', 'sistema_escolar'),
     'user' => (string) $env('DB_USER', 'root'),
-    'pass' => (string) $env('DB_PASS', '')
+    'pass' => (string) $env('DB_PASS', ''),
+    'ssl_ca' => (string) $env('DB_SSL_CA', '')
 );

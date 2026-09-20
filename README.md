@@ -91,7 +91,11 @@ A solução implementa:
 - detecção de e-mail e matrícula duplicados;
 - mensagens flash e fluxo Post/Redirect/Get;
 - proteção CSRF nas operações de escrita do módulo de alunos;
-- páginas de erro 404, 405 e 500;
+- autenticação persistente com hash de senha e perfis de acesso;
+- cadastro e listagem de usuários por administradores;
+- logout por POST com CSRF e expiração da sessão por inatividade;
+- deploy opcional no Render com Docker e MySQL externo com TLS;
+- páginas de erro 403, 404, 405 e 500;
 - interface responsiva em português brasileiro; e
 - suporte à instalação em uma subpasta do <code>htdocs</code>.
 
@@ -102,6 +106,7 @@ A solução implementa:
 | Parcial 2 — Estrutura MVC e Rotas | ✅ Concluída | MVC, controllers, views, front controller, rotas e páginas de erro |
 | Parcial 3 — CRUD Inicial | ✅ Implementada | PDO, schema MySQL e operações Create e Read de alunos |
 | Parcial 4 — CRUD Completo | ✅ Concluída | Create, Read, Update e Delete de alunos, com validações e mensagens |
+| Parcial 5 — Autenticação e autorização | ✅ Implementada | Login persistente, perfis, sessão, logout com CSRF e cadastro de usuários |
 
 > [!NOTE]
 > A entidade principal **Aluno** possui CRUD completo. Upload de arquivos e os
@@ -178,10 +183,10 @@ são escapadas com o helper <code>e()</code>.
 | Aula 08 — CRUD Update e Delete | Atualização, exclusão segura e confirmação | Model, Controller, Views e rotas implementam edição e exclusão de alunos |
 | Aula 09 — Requisições e Respostas HTTP | GET para consulta, POST para escrita e validação no servidor | Rotas distinguem os verbos; Create, Update e Delete usam POST, CSRF, PRG e mensagens amigáveis |
 | Aula 10 — Boas Práticas e Segurança | Responsabilidade única, prepared statements, escape e erros seguros | SQL fica no Model, <code>e()</code> protege a saída e detalhes técnicos vão para o log |
-| Aula 11 — Sessões e Cookies | Estado da navegação e encerramento correto da sessão | Sessão inicia antes da saída, armazena mensagens flash e é regenerada no login demonstrativo |
-| Aula 12 — Autenticação e Autorização | Identidade e permissões são responsabilidades diferentes | Login atual é demonstrativo; autenticação persistente e autorização por perfil estão documentadas como futuras |
+| Aula 11 — Sessões e Cookies | Estado da navegação e encerramento correto da sessão | Sessão inicia antes da saída, armazena mensagens flash e é regenerada no login e periodicamente |
+| Aula 12 — Autenticação e Autorização | Identidade e permissões são responsabilidades diferentes | Login consulta usuários no MySQL, verifica senha com hash e aplica permissões por perfil |
 | Aula 13 — Validação, Erros e Upload | Validação obrigatória no servidor e tratamento de exceções | Cadastro valida campos e trata falhas; upload permanece fora do escopo atual |
-| Aula 14 — Deploy e Publicação | Separação de ambientes, credenciais e configuração de URLs | Banco aceita variáveis de ambiente e o guia descreve a execução local; publicação exige revisão de produção e backup |
+| Aula 14 — Deploy e Publicação | Separação de ambientes, credenciais e configuração de URLs | Banco aceita variáveis de ambiente e o guia descreve a execução local; deploy opcional usa Render, Docker e MySQL externo com TLS |
 
 A organização sugerida nas aulas concentra a classe de conexão em
 <code>app/Config/Database.php</code>. Este projeto preserva a estrutura
@@ -250,9 +255,9 @@ uma mensagem genérica; detalhes técnicos ficam somente no log do PHP.
 | --- | --- | --- |
 | <code>GET</code> | <code>/</code> | Página inicial |
 | <code>GET</code> | <code>/dashboard</code> | Painel principal |
-| <code>GET</code> | <code>/login</code> | Formulário de login demonstrativo |
-| <code>POST</code> | <code>/login</code> | Criação da sessão demonstrativa |
-| <code>GET</code> | <code>/logout</code> | Encerramento da sessão |
+| <code>GET</code> | <code>/login</code> | Formulário de login |
+| <code>POST</code> | <code>/login</code> | Autenticação com e-mail e senha do banco |
+| <code>POST</code> | <code>/logout</code> | Encerramento da sessão |
 | <code>GET</code> | <code>/alunos</code> | Listagem consultada no MySQL |
 | <code>GET</code> | <code>/alunos/criar</code> | Formulário de novo aluno |
 | <code>POST</code> | <code>/alunos/salvar</code> | Validação e persistência |
@@ -264,7 +269,9 @@ uma mensagem genérica; detalhes técnicos ficam somente no log do PHP.
 | <code>GET</code> | <code>/turmas</code> | Estrutura inicial do módulo |
 | <code>GET</code> | <code>/disciplinas</code> | Estrutura inicial do módulo |
 | <code>GET</code> | <code>/matriculas</code> | Estrutura inicial do módulo |
-| <code>GET</code> | <code>/usuarios</code> | Estrutura inicial do módulo |
+| <code>GET</code> | <code>/usuarios</code> | Listagem de usuários (administrador) |
+| <code>GET</code> | <code>/usuarios/criar</code> | Cadastro de usuário (administrador) |
+| <code>POST</code> | <code>/usuarios/salvar</code> | Persistência de usuário com hash e CSRF |
 
 Rotas não cadastradas respondem com **404**. Métodos incompatíveis respondem
 com **405** e informam os métodos permitidos. Erros internos não previstos
@@ -276,8 +283,10 @@ respondem com uma página **500** genérica.
 
 O script versionado em
 [<code>database/schema.sql</code>](database/schema.sql) cria o banco
-<code>sistema_escolar</code> e a tabela <code>alunos</code> sem apagar bancos,
+<code>sistema_escolar</code> e as tabelas <code>alunos</code> e <code>usuarios</code> sem apagar bancos,
 tabelas ou registros existentes.
+
+Trecho da tabela principal (o arquivo completo também cria `usuarios`):
 
 ~~~sql
 CREATE DATABASE IF NOT EXISTS sistema_escolar
@@ -307,6 +316,9 @@ O arquivo [<code>config/database.php</code>](config/database.php) lê:
 | <code>DB_NAME</code> | <code>sistema_escolar</code> | Banco da aplicação |
 | <code>DB_USER</code> | <code>root</code> | Usuário local |
 | <code>DB_PASS</code> | vazio | Senha local |
+| <code>DB_SSL_CA</code> | vazio | Caminho do certificado CA para TLS com verificação do servidor |
+| <code>SESSION_SECURE_COOKIE</code> | automático pelo HTTPS do Apache | Use `1` no Render para cookies Secure atrás do proxy HTTPS |
+| <code>AUTH_IDLE_TIMEOUT</code> | <code>1800</code> | Expiração por inatividade em segundos (mínimo 60) |
 
 A classe <code>core/Database.php</code> fornece
 <code>Database::connect()</code>. O método mantém a conexão em uma propriedade
@@ -327,27 +339,26 @@ configuração do Apache/PHP.
 
 ## 6️⃣ Resultados e Validações
 
-> [!IMPORTANT]
-> As verificações abaixo foram executadas localmente. A persistência completa
-> deve ser demonstrada em uma instalação XAMPP com credenciais MySQL válidas.
+A revisão atual cobre MVC, rotas, autenticação, autorização, formulários, models,
+views, assets, schema e configuração de deploy. Para repetir as verificações:
 
-| Validação | Resultado |
-| --- | --- |
-| Sintaxe de todos os arquivos PHP | ✅ Aprovada |
-| Sintaxe de <code>public/js/app.js</code> | ✅ Aprovada |
-| Rotas GET obrigatórias | ✅ 200 ou redirecionamento esperado |
-| Post/Redirect/Get de Create, Update e Delete | ✅ Resposta 303 |
-| Proteção CSRF nas escritas de alunos | ✅ Token obrigatório e validado |
-| Rota inexistente | ✅ 404 |
-| Método HTTP incompatível | ✅ 405 com cabeçalho <code>Allow</code> |
-| Valores preservados após validação | ✅ Aprovado |
-| Falhas de banco sem vazamento de detalhes | ✅ Aprovado |
-| SQL dentro das views | ✅ Nenhuma ocorrência |
-| Dados simulados no model | ✅ Nenhuma ocorrência |
-| CRUD do Model com PDO/SQLite em memória | ✅ Create, Read, Update e Delete aprovados |
-| Fluxos de Update e Delete no Controller | ✅ Persistência e mensagens aprovadas com PDO |
-| <code>git diff --check</code> | ✅ Aprovado |
-| CRUD completo com MySQL local | ⚠️ Pendente de uma instância MySQL/XAMPP ativa |
+~~~powershell
+rg --files -g "*.php" | ForEach-Object { php -l $_ }
+node --check public/js/app.js
+php tests/smoke.php
+git diff --check
+~~~
+
+O teste de smoke não acessa dados reais: valida permissões, rotas, CSRF e
+configuração local. O teste completo de persistência requer MySQL ativo e
+`pdo_mysql`. Build Docker e deploy remoto devem ser verificados no ambiente
+correspondente; sintaxe aprovada não comprova conectividade ou persistência.
+
+Na revisão de 20/09/2026: sintaxe dos 36 arquivos PHP, sintaxe do JavaScript,
+24 verificações de smoke e `git diff --check` aprovados. O PHP CLI disponível
+não tinha `pdo_mysql` habilitado e o Docker Engine estava desligado; portanto,
+persistência MySQL, conexão TLS real e build da imagem não foram executados.
+Nenhum serviço remoto foi criado ou publicado nesta revisão.
 
 ### Tratamentos implementados
 
@@ -391,7 +402,8 @@ configuração do Apache/PHP.
    [http://localhost/phpmyadmin/](http://localhost/phpmyadmin/).
 4. Importe [<code>database/schema.sql</code>](database/schema.sql).
 5. Confira as variáveis do banco ou mantenha os padrões locais.
-6. Abra:
+6. Crie o administrador inicial conforme a seção abaixo.
+7. Abra:
 
    [http://localhost/projeto-integrador/public/](http://localhost/projeto-integrador/public/)
 
@@ -404,9 +416,35 @@ Set-Location projeto-integrador
 git switch master
 ~~~
 
+### Primeiro administrador e perfis
+
+No PowerShell, na raiz do projeto, usando o PHP do XAMPP no PATH:
+
+~~~powershell
+$env:APP_ADMIN_NAME = "Administrador"
+$env:APP_ADMIN_EMAIL = "admin@escola.test"
+$adminSecret = Read-Host "Senha inicial (mínimo 8 caracteres)" -AsSecureString
+$env:APP_ADMIN_PASSWORD = [System.Net.NetworkCredential]::new("", $adminSecret).Password
+try { php database/create_admin.php } finally { Remove-Item Env:APP_ADMIN_PASSWORD }
+~~~
+
+O script cria o usuário ou redefine nome, senha e perfil do e-mail informado
+para administrador ativo. Execute apenas para a criação ou recuperação
+intencional da conta; não o configure para rodar a cada deploy. Não existe senha
+padrão. Depois, entre em `/login`.
+
+| Perfil | Consultar alunos | Cadastrar, editar e excluir alunos | Listar e cadastrar usuários |
+| --- | --- | --- | --- |
+| Administrador | Sim | Sim | Sim |
+| Secretaria | Sim | Sim | Não |
+| Consulta | Sim | Não | Não |
+
+As permissões são verificadas no servidor. A sessão expira após 30 minutos de
+inatividade por padrão; login regenera seu identificador e o token CSRF.
+
 ### Demonstração do CRUD completo
 
-1. Acesse <code>/alunos</code>.
+1. Faça login como administrador ou secretaria e acesse <code>/alunos</code>.
 2. Clique em **Novo aluno**.
 3. Informe nome, e-mail, matrícula e turma inéditos.
 4. Envie o formulário e confirme a mensagem de sucesso.
@@ -424,6 +462,99 @@ Se uma rota interna retornar 404 do próprio Apache, verifique
 
 ---
 
+## ☁️ Deploy opcional: Render + Aiven MySQL
+
+O mesmo projeto continua funcionando no XAMPP. Para uma demonstração online,
+o [Render aceita PHP por Docker](https://render.com/docs/docker) e oferece
+[Web Services gratuitos](https://render.com/docs/free). O banco fica separado,
+no [plano gratuito de MySQL da Aiven](https://aiven.io/docs/products/mysql/concepts/mysql-free-tier).
+Os planos foram consultados em 20/09/2026; confira a disponibilidade na sua conta.
+O serviço publica a aplicação completa (PHP renderiza o frontend), sem exigir
+um frontend separado ou mudanças de CORS.
+
+### 1. Preparar o banco remoto
+
+1. Na Aiven, crie um serviço **MySQL no plano Free**, sem selecionar trial pago.
+2. Copie host, porta, nome do banco, usuário e senha do painel. Use o nome real
+   do banco fornecido, normalmente `defaultdb`.
+3. Baixe o certificado CA do serviço como `ca.pem` e mantenha-o fora do Git.
+4. No PowerShell local, configure a conexão (a porta abaixo é um exemplo):
+
+~~~powershell
+$env:DB_HOST = "host-fornecido-pela-aiven"
+$env:DB_PORT = "12345"
+$env:DB_NAME = "defaultdb"
+$env:DB_USER = "avnadmin"
+$dbSecret = Read-Host "Senha do banco remoto" -AsSecureString
+$env:DB_PASS = [System.Net.NetworkCredential]::new("", $dbSecret).Password
+$env:DB_SSL_CA = "C:\caminho\ca.pem"
+php database/migrate.php
+~~~
+
+Use PHP com `pdo_mysql` habilitado. `migrate.php` cria as tabelas do schema
+no banco de `DB_NAME`, sem executar `CREATE DATABASE` nem `USE sistema_escolar`.
+É repetível e não apaga registros; não modifica a estrutura de tabelas já
+existentes. Para um banco com dados, faça backup antes de executar alterações.
+Após confirmar o sucesso, execute `database/create_admin.php` conforme o guia
+local, mantendo as variáveis do banco remoto neste terminal.
+
+Ao terminar, feche esse terminal ou remova as variáveis para voltar ao banco local:
+
+~~~powershell
+'DB_HOST','DB_PORT','DB_NAME','DB_USER','DB_PASS','DB_SSL_CA' | ForEach-Object {
+    Remove-Item "Env:$_" -ErrorAction SilentlyContinue
+}
+~~~
+
+### 2. Publicar no Render
+
+1. Envie estes arquivos ao seu repositório GitHub.
+2. No Render, use **New → Blueprint**, conecte o repositório e selecione a branch
+   com estas alterações. O [render.yaml](render.yaml) configura Docker e plano Free.
+3. Preencha `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER` e `DB_PASS` com os dados
+   da Aiven. Não coloque senhas no YAML ou no Dockerfile.
+4. Em **Environment → Secret Files**, adicione `ca.pem` com o conteúdo integral
+   do certificado baixado. O caminho configurado é `/etc/secrets/ca.pem`.
+5. Salve e faça o deploy/redeploy. O Apache escuta na porta 80 (`PORT=80`) e
+   publica somente `public/`. O health check `/login` verifica PHP/HTTP, sem
+   garantir a disponibilidade do banco.
+6. Acesse `https://<servico>.onrender.com/login`, entre com o administrador
+   criado e teste cadastro, edição, consulta e exclusão de um aluno fictício.
+
+Não há migração nem redefinição de administrador automática no startup. O
+preparo pelo terminal local evita depender de shell remoto do plano gratuito.
+`SESSION_SECURE_COOKIE=1` protege os cookies no HTTPS do Render mesmo com
+HTTP entre o proxy e o Apache, sem confiar em cabeçalhos enviados pelo cliente.
+`DB_SSL_CA` habilita TLS e verificação do certificado do MySQL; CA ausente ou
+inválida deve ser corrigida, nunca contornada desabilitando a verificação.
+
+### Testar a imagem localmente (opcional)
+
+Com Docker Desktop ativo:
+
+~~~powershell
+docker build -t sistema-escolar .
+docker run --rm -p 8080:80 -e DB_HOST=host.docker.internal -e DB_PORT=3306 -e DB_NAME=sistema_escolar -e DB_USER -e DB_PASS sistema-escolar
+~~~
+
+Abra `http://localhost:8080`. Para login/CRUD, configure `DB_USER` e `DB_PASS`
+no terminal e permita a conexão do container ao MySQL local. Não use
+`SESSION_SECURE_COOKIE=1` neste teste por HTTP. O XAMPP continua sendo a opção
+local principal e não depende do Docker.
+
+### Limites da opção gratuita
+
+- O Render Free suspende o serviço após 15 minutos sem tráfego; o primeiro
+  acesso pode demorar. Há cotas de uso, build e tráfego compartilhadas na conta.
+- O disco do Render é efêmero. Sessões em arquivo podem ser perdidas em
+  reinícios/deploys, exigindo novo login; os dados persistem no MySQL externo.
+- Não armazene o MySQL ou futuros uploads no disco desse container.
+- Aiven Free tem recursos limitados e pode desligar serviços inativos. Verifique
+  os limites atuais nos links oficiais acima. Essa configuração destina-se a
+  demonstrações acadêmicas, com dados fictícios.
+
+---
+
 ## 8️⃣ Estrutura do Projeto
 
 ~~~text
@@ -435,9 +566,11 @@ projeto-integrador/
 │   │   ├── DashboardController.php
 │   │   ├── ErrorController.php
 │   │   ├── HomeController.php
-│   │   └── ModuloController.php
+│   │   ├── ModuloController.php
+│   │   └── UsuarioController.php
 │   ├── Models/
-│   │   └── Aluno.php
+│   │   ├── Aluno.php
+│   │   └── Usuario.php
 │   └── Views/
 │       ├── alunos/
 │       ├── auth/
@@ -445,16 +578,28 @@ projeto-integrador/
 │       ├── errors/
 │       ├── home/
 │       ├── layouts/
-│       └── modulos/
+│       ├── modulos/
+│       └── usuarios/
 ├── config/
 │   └── database.php
 ├── core/
+│   ├── Auth.php
 │   ├── Controller.php
 │   ├── Database.php
 │   ├── Router.php
 │   └── helpers.php
 ├── database/
+│   ├── create_admin.php
+│   ├── migrate.php
 │   └── schema.sql
+├── deploy/
+│   ├── apache.conf
+│   └── php.ini
+├── tests/
+│   └── smoke.php
+├── Dockerfile
+├── .dockerignore
+├── render.yaml
 ├── routes/
 │   └── web.php
 ├── public/
@@ -494,19 +639,20 @@ projeto-integrador/
 
 ### Limitações atuais
 
-- o login é demonstrativo e ainda não consulta usuários no banco;
-- não há controle de autorização por perfil;
+- não há recuperação de senha por e-mail nem limitação de tentativas de login;
+- alterações de perfil/inativação feitas diretamente no banco só afetam novos logins;
+- usuários têm cadastro e listagem, sem edição/exclusão pela interface;
 - upload de fotos e documentos ainda não foi implementado;
 - os demais módulos possuem somente a estrutura inicial;
 - a validação final da persistência depende do MySQL configurado no XAMPP.
 
 ### Próximas etapas
 
-- adicionar autenticação persistente e senhas com hash;
-- proteger rotas por sessão e perfil;
+- adicionar limitação de tentativas de login e recuperação de senha;
+- revalidar usuários ativos e permissões durante sessões existentes;
 - desenvolver os CRUDs dos demais módulos;
 - criar DER/MER e ampliar os relacionamentos do banco;
-- adicionar testes automatizados.
+- ampliar testes de integração com MySQL.
 
 ---
 
