@@ -8,6 +8,7 @@
 /.phpunit.result.cache
 /.phpunit.cache/
 /coverage/
+/dist/
 
 # Ambiente e configurações locais
 .env

@@ -57,6 +57,8 @@ a pessoa mantém vinculado à conta do GitHub.
 ## Regras de implementação
 
 - `public/index.php` deve permanecer como único Front Controller.
+- O pacote InfinityFree reutiliza esse front controller em `private/` e mantém
+  um ponto de entrada mínimo em `htdocs/index.php`; não duplique regras de rotas.
 - As rotas devem ficar centralizadas em `routes/web.php`, sem duplicidades.
 - Controllers recebem requisições e coordenam o fluxo; não devem conter SQL ou
   gerar HTML.
@@ -88,6 +90,17 @@ Se o Node.js estiver disponível, valide também o JavaScript:
 ```powershell
 node --check public/js/app.js
 ```
+
+Para mudanças na configuração ou hospedagem:
+
+```powershell
+php tests/configuration.php
+php tests/export_admin.php
+powershell -ExecutionPolicy Bypass -File tests/package-infinityfree.ps1
+```
+
+Consulte [o guia InfinityFree](docs/INFINITYFREE.md). Pacotes de `dist/`, SQLs de
+administradores e `config/database.local.php` não devem ser versionados.
 
 Mudanças que envolvam banco de dados devem ser verificadas com MySQL ativo:
 

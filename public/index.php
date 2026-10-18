@@ -17,7 +17,10 @@ session_set_cookie_params(array(
 ));
 session_start();
 
-define('ROOT_PATH', dirname(__DIR__));
+// O pacote de hospedagem informa a pasta privada; o XAMPP mantém a raiz original.
+if (!defined('ROOT_PATH')) {
+    define('ROOT_PATH', dirname(__DIR__));
+}
 define('VIEW_PATH', ROOT_PATH . '/app/Views');
 
 require_once ROOT_PATH . '/core/helpers.php';

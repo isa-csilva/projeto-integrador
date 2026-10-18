@@ -24,7 +24,43 @@
 </p>
 
 ---
+## 📌 Índice
 
+- [👥 Integrantes](#-integrantes)
+- [1️⃣ Visão Geral da Solução](#1️⃣-visão-geral-da-solução)
+  - [Situação das entregas](#situação-das-entregas)
+- [2️⃣ Arquitetura MVC](#2️⃣-arquitetura-mvc)
+  - [Fluxo principal](#fluxo-principal)
+  - [Responsabilidades](#responsabilidades)
+  - [Alinhamento prioritário com as Aulas 02 a 07](#alinhamento-prioritário-com-as-aulas-02-a-07)
+  - [Relação com as demais aulas da disciplina](#relação-com-as-demais-aulas-da-disciplina)
+- [3️⃣ Gerenciamento de Alunos](#3️⃣-gerenciamento-de-alunos)
+  - [Campos persistidos](#campos-persistidos)
+  - [Fluxo do cadastro](#fluxo-do-cadastro)
+  - [Fluxo da edição](#fluxo-da-edição)
+  - [Fluxo da exclusão](#fluxo-da-exclusão)
+- [4️⃣ Rotas Disponíveis](#4️⃣-rotas-disponíveis)
+- [5️⃣ Banco de Dados e PDO](#5️⃣-banco-de-dados-e-pdo)
+  - [Configuração da conexão](#configuração-da-conexão)
+- [6️⃣ Resultados e Validações](#6️⃣-resultados-e-validações)
+  - [Tratamentos implementados](#tratamentos-implementados)
+- [7️⃣ Como Executar com XAMPP](#7️⃣-como-executar-com-xampp)
+  - [Pré-requisitos](#pré-requisitos)
+  - [Instalação](#instalação)
+  - [Primeiro administrador e perfis](#primeiro-administrador-e-perfis)
+  - [Demonstração do CRUD completo](#demonstração-do-crud-completo)
+- [☁️ Hospedagem no InfinityFree](#️-hospedagem-no-infinityfree)
+- [8️⃣ Estrutura do Projeto](#8️⃣-estrutura-do-projeto)
+- [9️⃣ Decisões Técnicas e Limitações](#9️⃣-decisões-técnicas-e-limitações)
+  - [Decisões técnicas](#decisões-técnicas)
+  - [Limitações atuais](#limitações-atuais)
+  - [Próximas etapas](#próximas-etapas)
+- [🔐 Segurança](#-segurança)
+- [🤝 Contribuição e Comunidade](#-contribuição-e-comunidade)
+- [🔗 Repositório](#-repositório)
+
+---
+---
 ## 👥 Integrantes
 
 <table align="center">
@@ -94,7 +130,7 @@ A solução implementa:
 - autenticação persistente com hash de senha e perfis de acesso;
 - cadastro e listagem de usuários por administradores;
 - logout por POST com CSRF e expiração da sessão por inatividade;
-- deploy opcional no Render com Docker e MySQL externo com TLS;
+- deploy no InfinityFree com PHP, MySQL do provedor e pacote para upload;
 - páginas de erro 403, 404, 405 e 500;
 - interface responsiva em português brasileiro; e
 - suporte à instalação em uma subpasta do <code>htdocs</code>.
@@ -186,12 +222,12 @@ são escapadas com o helper <code>e()</code>.
 | Aula 11 — Sessões e Cookies | Estado da navegação e encerramento correto da sessão | Sessão inicia antes da saída, armazena mensagens flash e é regenerada no login e periodicamente |
 | Aula 12 — Autenticação e Autorização | Identidade e permissões são responsabilidades diferentes | Login consulta usuários no MySQL, verifica senha com hash e aplica permissões por perfil |
 | Aula 13 — Validação, Erros e Upload | Validação obrigatória no servidor e tratamento de exceções | Cadastro valida campos e trata falhas; upload permanece fora do escopo atual |
-| Aula 14 — Deploy e Publicação | Separação de ambientes, credenciais e configuração de URLs | Banco aceita variáveis de ambiente e o guia descreve a execução local; deploy opcional usa Render, Docker e MySQL externo com TLS |
+| Aula 14 — Deploy e Publicação | Separação de ambientes, credenciais e configuração de URLs | Banco aceita variáveis de ambiente e o guia descreve a execução local; deploy no InfinityFree usa pacote de arquivos, configuração privada e importação pelo phpMyAdmin |
 
 A organização sugerida nas aulas concentra a classe de conexão em
 <code>app/Config/Database.php</code>. Este projeto preserva a estrutura
-equivalente que já estava funcional: <code>config/database.php</code> contém
-somente os valores de ambiente, enquanto <code>core/Database.php</code>
+equivalente que já estava funcional: <code>config/database.php</code> reúne
+os padrões, o ambiente e a configuração privada, enquanto <code>core/Database.php</code>
 centraliza a criação e a reutilização do PDO. As responsabilidades são as
 mesmas, mas ficam separadas entre configuração e infraestrutura.
 
@@ -316,8 +352,8 @@ O arquivo [<code>config/database.php</code>](config/database.php) lê:
 | <code>DB_NAME</code> | <code>sistema_escolar</code> | Banco da aplicação |
 | <code>DB_USER</code> | <code>root</code> | Usuário local |
 | <code>DB_PASS</code> | vazio | Senha local |
-| <code>DB_SSL_CA</code> | vazio | Caminho do certificado CA para TLS com verificação do servidor |
-| <code>SESSION_SECURE_COOKIE</code> | automático pelo HTTPS do Apache | Use `1` no Render para cookies Secure atrás do proxy HTTPS |
+| <code>DB_SSL_CA</code> | vazio | CA opcional para bancos externos com TLS; vazio no MySQL do InfinityFree |
+| <code>SESSION_SECURE_COOKIE</code> | automático pelo HTTPS do Apache | Use `1` para forçar cookies Secure em ambientes HTTPS |
 | <code>AUTH_IDLE_TIMEOUT</code> | <code>1800</code> | Expiração por inatividade em segundos (mínimo 60) |
 
 A classe <code>core/Database.php</code> fornece
@@ -331,9 +367,11 @@ utiliza:
 - <code>PDO::ATTR_EMULATE_PREPARES = false</code>;
 - uma única conexão reutilizada durante cada requisição.
 
-O projeto não carrega arquivos <code>.env</code> automaticamente. Em ambientes
-diferentes do padrão local, as variáveis devem ser definidas no sistema ou na
-configuração do Apache/PHP.
+O projeto não carrega `.env` automaticamente. No XAMPP, os padrões continuam
+funcionando e as variáveis de ambiente são opcionais. Na hospedagem,
+`config/database.local.php` sobrescreve os valores de conexão (inclusive
+`ssl_ca` vazio). Use [config/database.example.php](config/database.example.php)
+como modelo; o arquivo com senhas e os pacotes gerados são ignorados pelo Git.
 
 ---
 
@@ -346,19 +384,17 @@ views, assets, schema e configuração de deploy. Para repetir as verificações
 rg --files -g "*.php" | ForEach-Object { php -l $_ }
 node --check public/js/app.js
 php tests/smoke.php
+php tests/configuration.php
+php tests/export_admin.php
+powershell -ExecutionPolicy Bypass -File tests/package-infinityfree.ps1
 git diff --check
 ~~~
 
-O teste de smoke não acessa dados reais: valida permissões, rotas, CSRF e
-configuração local. O teste completo de persistência requer MySQL ativo e
-`pdo_mysql`. Build Docker e deploy remoto devem ser verificados no ambiente
-correspondente; sintaxe aprovada não comprova conectividade ou persistência.
-
-Na revisão de 20/09/2026: sintaxe dos 36 arquivos PHP, sintaxe do JavaScript,
-24 verificações de smoke e `git diff --check` aprovados. O PHP CLI disponível
-não tinha `pdo_mysql` habilitado e o Docker Engine estava desligado; portanto,
-persistência MySQL, conexão TLS real e build da imagem não foram executados.
-Nenhum serviço remoto foi criado ou publicado nesta revisão.
+Os testes locais cobrem rotas, permissões, CSRF, configuração do banco, geração
+do SQL do administrador e montagem do pacote. Não acessam bancos reais.
+A validação final deve incluir importação no phpMyAdmin, login, CRUD e bloqueio
+de `/private/` na hospedagem. Não houve publicação ou transferência de dados
+para o InfinityFree durante esta adaptação.
 
 ### Tratamentos implementados
 
@@ -462,96 +498,30 @@ Se uma rota interna retornar 404 do próprio Apache, verifique
 
 ---
 
-## ☁️ Deploy opcional: Render + Aiven MySQL
+## ☁️ Hospedagem no InfinityFree
 
-O mesmo projeto continua funcionando no XAMPP. Para uma demonstração online,
-o [Render aceita PHP por Docker](https://render.com/docs/docker) e oferece
-[Web Services gratuitos](https://render.com/docs/free). O banco fica separado,
-no [plano gratuito de MySQL da Aiven](https://aiven.io/docs/products/mysql/concepts/mysql-free-tier).
-Os planos foram consultados em 20/09/2026; confira a disponibilidade na sua conta.
-O serviço publica a aplicação completa (PHP renderiza o frontend), sem exigir
-um frontend separado ou mudanças de CORS.
+A aplicação agora está preparada para PHP + MySQL no InfinityFree, preservando
+o XAMPP. O pacote coloca o front controller e os assets na raiz do site e
+protege os arquivos internos em `private/`. As credenciais ficam em um arquivo
+PHP fora do Git.
 
-### 1. Preparar o banco remoto
+**[Passo a passo de publicação e migração](docs/INFINITYFREE.md)**
 
-1. Na Aiven, crie um serviço **MySQL no plano Free**, sem selecionar trial pago.
-2. Copie host, porta, nome do banco, usuário e senha do painel. Use o nome real
-   do banco fornecido, normalmente `defaultdb`.
-3. Baixe o certificado CA do serviço como `ca.pem` e mantenha-o fora do Git.
-4. No PowerShell local, configure a conexão (a porta abaixo é um exemplo):
+Gere os arquivos de upload no PowerShell, na raiz do projeto:
 
 ~~~powershell
-$env:DB_HOST = "host-fornecido-pela-aiven"
-$env:DB_PORT = "12345"
-$env:DB_NAME = "defaultdb"
-$env:DB_USER = "avnadmin"
-$dbSecret = Read-Host "Senha do banco remoto" -AsSecureString
-$env:DB_PASS = [System.Net.NetworkCredential]::new("", $dbSecret).Password
-$env:DB_SSL_CA = "C:\caminho\ca.pem"
-php database/migrate.php
+powershell -ExecutionPolicy Bypass -File deploy/package-infinityfree.ps1
 ~~~
 
-Use PHP com `pdo_mysql` habilitado. `migrate.php` cria as tabelas do schema
-no banco de `DB_NAME`, sem executar `CREATE DATABASE` nem `USE sistema_escolar`.
-É repetível e não apaga registros; não modifica a estrutura de tabelas já
-existentes. Para um banco com dados, faça backup antes de executar alterações.
-Após confirmar o sucesso, execute `database/create_admin.php` conforme o guia
-local, mantendo as variáveis do banco remoto neste terminal.
+O comando informa uma nova pasta em `dist/` e um ZIP com os arquivos de
+`htdocs`. Crie o banco no painel, importe `database/schema-hosted.sql` pelo
+phpMyAdmin, configure o arquivo privado e envie o conteúdo de `htdocs`.
+O guia explica também como gerar o administrador sem conexão remota e como
+preservar dados de uma instalação anterior. O pacote não inclui senhas reais.
 
-Ao terminar, feche esse terminal ou remova as variáveis para voltar ao banco local:
-
-~~~powershell
-'DB_HOST','DB_PORT','DB_NAME','DB_USER','DB_PASS','DB_SSL_CA' | ForEach-Object {
-    Remove-Item "Env:$_" -ErrorAction SilentlyContinue
-}
-~~~
-
-### 2. Publicar no Render
-
-1. Envie estes arquivos ao seu repositório GitHub.
-2. No Render, use **New → Blueprint**, conecte o repositório e selecione a branch
-   com estas alterações. O [render.yaml](render.yaml) configura Docker e plano Free.
-3. Preencha `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER` e `DB_PASS` com os dados
-   da Aiven. Não coloque senhas no YAML ou no Dockerfile.
-4. Em **Environment → Secret Files**, adicione `ca.pem` com o conteúdo integral
-   do certificado baixado. O caminho configurado é `/etc/secrets/ca.pem`.
-5. Salve e faça o deploy/redeploy. O Apache escuta na porta 80 (`PORT=80`) e
-   publica somente `public/`. O health check `/login` verifica PHP/HTTP, sem
-   garantir a disponibilidade do banco.
-6. Acesse `https://<servico>.onrender.com/login`, entre com o administrador
-   criado e teste cadastro, edição, consulta e exclusão de um aluno fictício.
-
-Não há migração nem redefinição de administrador automática no startup. O
-preparo pelo terminal local evita depender de shell remoto do plano gratuito.
-`SESSION_SECURE_COOKIE=1` protege os cookies no HTTPS do Render mesmo com
-HTTP entre o proxy e o Apache, sem confiar em cabeçalhos enviados pelo cliente.
-`DB_SSL_CA` habilita TLS e verificação do certificado do MySQL; CA ausente ou
-inválida deve ser corrigida, nunca contornada desabilitando a verificação.
-
-### Testar a imagem localmente (opcional)
-
-Com Docker Desktop ativo:
-
-~~~powershell
-docker build -t sistema-escolar .
-docker run --rm -p 8080:80 -e DB_HOST=host.docker.internal -e DB_PORT=3306 -e DB_NAME=sistema_escolar -e DB_USER -e DB_PASS sistema-escolar
-~~~
-
-Abra `http://localhost:8080`. Para login/CRUD, configure `DB_USER` e `DB_PASS`
-no terminal e permita a conexão do container ao MySQL local. Não use
-`SESSION_SECURE_COOKIE=1` neste teste por HTTP. O XAMPP continua sendo a opção
-local principal e não depende do Docker.
-
-### Limites da opção gratuita
-
-- O Render Free suspende o serviço após 15 minutos sem tráfego; o primeiro
-  acesso pode demorar. Há cotas de uso, build e tráfego compartilhadas na conta.
-- O disco do Render é efêmero. Sessões em arquivo podem ser perdidas em
-  reinícios/deploys, exigindo novo login; os dados persistem no MySQL externo.
-- Não armazene o MySQL ou futuros uploads no disco desse container.
-- Aiven Free tem recursos limitados e pode desligar serviços inativos. Verifique
-  os limites atuais nos links oficiais acima. Essa configuração destina-se a
-  demonstrações acadêmicas, com dados fictícios.
+O [MySQL gratuito só aceita acesso pela hospedagem ou pelo phpMyAdmin](https://forum.infinityfree.com/t/connecting-to-mysql-from-an-external-application/49339).
+Por isso, a instalação hospedada não usa `create_admin.php` conectado diretamente
+do seu computador. O HTTPS do site deve estar ativo antes do primeiro login.
 
 ---
 
@@ -581,7 +551,8 @@ projeto-integrador/
 │       ├── modulos/
 │       └── usuarios/
 ├── config/
-│   └── database.php
+│   ├── database.php
+│   └── database.example.php
 ├── core/
 │   ├── Auth.php
 │   ├── Controller.php
@@ -590,16 +561,20 @@ projeto-integrador/
 │   └── helpers.php
 ├── database/
 │   ├── create_admin.php
+│   ├── export_admin.php
 │   ├── migrate.php
+│   ├── schema-hosted.sql
 │   └── schema.sql
 ├── deploy/
-│   ├── apache.conf
-│   └── php.ini
+│   ├── infinityfree/
+│   └── package-infinityfree.ps1
+├── docs/
+│   └── INFINITYFREE.md
 ├── tests/
+│   ├── configuration.php
+│   ├── export_admin.php
+│   ├── package-infinityfree.ps1
 │   └── smoke.php
-├── Dockerfile
-├── .dockerignore
-├── render.yaml
 ├── routes/
 │   └── web.php
 ├── public/
@@ -644,7 +619,7 @@ projeto-integrador/
 - usuários têm cadastro e listagem, sem edição/exclusão pela interface;
 - upload de fotos e documentos ainda não foi implementado;
 - os demais módulos possuem somente a estrutura inicial;
-- a validação final da persistência depende do MySQL configurado no XAMPP.
+- a validação final de persistência e hospedagem exige MySQL e acesso ao provedor.
 
 ### Próximas etapas
 
@@ -676,6 +651,24 @@ materiais da disciplina e outros conteúdos de terceiros permanecem sujeitos
 aos direitos de seus respectivos titulares.
 
 ---
+
+### 🎥 Demonstração em Vídeo
+
+<p align="center">
+  <a href="https://youtu.be/GY3UYjGNB1c" target="_blank"> Link no Youtube   
+  </a>
+</p>
+
+
+https://github.com/user-attachments/assets/529c8bc1-76a2-49f2-a2d7-05eb6823e6c0
+
+
+---
+
+
+
+
+
 
 ## 🔗 Repositório
 

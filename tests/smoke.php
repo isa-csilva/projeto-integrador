@@ -42,21 +42,7 @@ function requestRoute($method, $path, $base = '')
 }
 
 try {
-    // Isola a configuração do processo de teste das credenciais do ambiente.
-    foreach (array('DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASS', 'DB_SSL_CA') as $key) {
-        putenv($key);
-    }
-    $config = require ROOT_PATH . '/config/database.php';
-    check($config['host'] === '127.0.0.1' && $config['name'] === 'sistema_escolar', 'Padrões locais');
-    check($config['pass'] === '' && $config['ssl_ca'] === '', 'TLS local opcional');
-    putenv('DB_SSL_CA=' . __DIR__ . '/missing-ca.pem');
-    try {
-        Database::connect();
-        throw new LogicException('CA ausente foi aceita');
-    } catch (RuntimeException $error) {
-        check($error->getMessage() === 'Certificado CA do banco indisponível.', 'TLS deve falhar sem CA');
-    }
-    putenv('DB_SSL_CA');
+    // Configuração é validada isoladamente em tests/configuration.php.
     check(csrfIsValid(csrfToken()) && !csrfIsValid('incorreto'), 'CSRF');
     check(requestRoute('GET', '/')[0] === 200, 'Página inicial');
     check(requestRoute('GET', '/login')[0] === 200, 'Login');
